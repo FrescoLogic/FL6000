@@ -6,7 +6,7 @@ This is an official driver release from Fresco Logic in an attempt to help the o
 
 ### 2. On which kernel versions does this driver work?
 
-This driver is tested on Ubuntu 14 LTS as well as some Android platforms with kernel version 3.10.x. and 3.18.xp
+This driver is tested on Ubuntu 14 LTS as well as some Android platforms with kernel version 3.10.x. and 3.18.x.
 You might need to adapt it for your own use.
 
 ### 3. Target audience
