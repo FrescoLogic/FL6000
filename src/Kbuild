@@ -1,0 +1,22 @@
+CFLAGS_ehub-xhci-trace.o := -I$(src)
+
+# /* TODO: EHUB add variable to control debug builds.
+ccflags-$(CONFIG_USB_EHUB_DEBUG_MODE) += -g -ggdb3 -O0 -DEHUB_DEBUG_ENABLE
+
+obj-$(CONFIG_USB_EHUB_HCD) += ehub.o
+
+ehub-y := ehub_module.o
+ehub-y += ehub_usb.o
+ehub-y += ehub_urb.o
+ehub-y += ehub_device_context.o
+ehub-y += ehub_work_item.o
+ehub-y += ehub_register.o
+ehub-y += ehub_embedded_register.o
+ehub-y += ehub_embedded_cache.o
+ehub-y += ehub_notification.o
+ehub-y += ehub_message.o
+ehub-y += ehub-xhci-trace.o
+ehub-y += xhci.o xhci-mem.o
+ehub-y += xhci-ring.o xhci-hub.o xhci-dbg.o
+ehub-y += ehub-xhci-trace.o
+ehub-y += xhci-ehub.o
