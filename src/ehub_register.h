@@ -32,38 +32,38 @@
 
 int
 REGISTER_Transfer(
-    PDEVICE_CONTEXT DeviceContext,
-    int ReadWrite,
-    u32 Offset,
-    u32* Data
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	int ReadWrite,
+	u32 Offset,
+	u32* Data
+	);
 
 int
 REGISTER_Write(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32* Data
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32* Data
+	);
 
 int
 REGISTER_Read(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32* Data
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32* Data
+	);
 
 void
 REGISTER_SetBit(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32 BitOffset
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32 BitOffset
+	);
 
 void
 REGISTER_ClearBit(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32 BitOffset
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32 BitOffset
+	);
 
 #endif

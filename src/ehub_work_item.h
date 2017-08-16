@@ -25,24 +25,24 @@
 
 PWORK_ITEM_CONTEXT
 WORK_ITEM_Create(
-    PDEVICE_CONTEXT DeviceContext,
-    void ( *WorkItemProcess )( struct work_struct * ),
-    int DataBufferLength
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	void ( *WorkItemProcess )( struct work_struct * ),
+	int DataBufferLength
+	);
 
 void
 WORK_ITEM_Destroy(
-    PWORK_ITEM_CONTEXT WorkItemContext
-    );
+	PWORK_ITEM_CONTEXT WorkItemContext
+	);
 
 void
 WORK_ITEM_Submit(
-    PWORK_ITEM_CONTEXT WorkItemContext
+	PWORK_ITEM_CONTEXT WorkItemContext
 );
 
 void
 WORK_ITEM_Process_MessageHandle(
-    struct work_struct* WorkItem
-    );
+	struct work_struct* WorkItem
+	);
 
 #endif

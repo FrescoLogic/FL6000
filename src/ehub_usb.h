@@ -54,62 +54,62 @@
 
 int
 USB_InterfaceCreateBulk(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceCreateIsoch(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceCreateInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceDestroyBulk(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceDestroyIsoch(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceDestroyInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceSuspendBulk(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceSuspendIsoch(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceSuspendInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceResumeBulk(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceResumeIsoch(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 USB_InterfaceResumeInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 #endif

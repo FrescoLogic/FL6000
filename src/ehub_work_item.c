@@ -38,243 +38,243 @@
  * reuse it instead of allocating and freeing repeatedly. */
 PWORK_ITEM_CONTEXT
 WORK_ITEM_Create(
-    PDEVICE_CONTEXT DeviceContext,
-    void ( *WorkItemProcess )( struct work_struct * ),
-    int DataBufferLength
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	void ( *WorkItemProcess )( struct work_struct * ),
+	int DataBufferLength
+	)
 {
-    PWORK_ITEM_CONTEXT workItemContext;
+	PWORK_ITEM_CONTEXT workItemContext;
 
-    workItemContext = kzalloc( sizeof( WORK_ITEM_CONTEXT ), GFP_ATOMIC );
-    ASSERT( NULL != workItemContext );
+	workItemContext = kzalloc( sizeof( WORK_ITEM_CONTEXT ), GFP_ATOMIC );
+	ASSERT( NULL != workItemContext );
 
-    workItemContext->DeviceContextPvoid = ( void* )DeviceContext;
-    workItemContext->DataBufferLength = DataBufferLength;
-    workItemContext->WorkItemProcess = WorkItemProcess;
+	workItemContext->DeviceContextPvoid = ( void* )DeviceContext;
+	workItemContext->DataBufferLength = DataBufferLength;
+	workItemContext->WorkItemProcess = WorkItemProcess;
 
-    workItemContext->DataBuffer = kzalloc( DataBufferLength, GFP_ATOMIC );
-    ASSERT( NULL != workItemContext->DataBuffer );
+	workItemContext->DataBuffer = kzalloc( DataBufferLength, GFP_ATOMIC );
+	ASSERT( NULL != workItemContext->DataBuffer );
 
-    return workItemContext;
+	return workItemContext;
 }
 
 void
 WORK_ITEM_Destroy(
-    PWORK_ITEM_CONTEXT WorkItemContext
-    )
+	PWORK_ITEM_CONTEXT WorkItemContext
+	)
 {
-    PDEVICE_CONTEXT deviceContext;
-    unsigned long flags;
+	PDEVICE_CONTEXT deviceContext;
+	unsigned long flags;
 
-    deviceContext = ( PDEVICE_CONTEXT )WorkItemContext->DeviceContextPvoid;
-    if (!deviceContext) {
-        printk(KERN_ERR "ERROR WORK_ITEM_Destroy deviceContext null\n");
-        return;
-    }
+	deviceContext = ( PDEVICE_CONTEXT )WorkItemContext->DeviceContextPvoid;
+	if (!deviceContext) {
+		printk(KERN_ERR "ERROR WORK_ITEM_Destroy deviceContext null\n");
+		return;
+	}
 
-    spin_lock_irqsave( &deviceContext->SpinLockWorkItemQueue , flags );
+	spin_lock_irqsave( &deviceContext->SpinLockWorkItemQueue , flags );
 
-    if ( NULL != WorkItemContext->DataBuffer )
-        kfree( WorkItemContext->DataBuffer );
+	if ( NULL != WorkItemContext->DataBuffer )
+		kfree( WorkItemContext->DataBuffer );
 
-    WorkItemContext->DataBuffer = NULL;
-    WorkItemContext->DataBufferLength = 0;
-    WorkItemContext->WorkItemProcess = NULL;
-    WorkItemContext->DeviceContextPvoid = NULL;
+	WorkItemContext->DataBuffer = NULL;
+	WorkItemContext->DataBufferLength = 0;
+	WorkItemContext->WorkItemProcess = NULL;
+	WorkItemContext->DeviceContextPvoid = NULL;
 
-    list_del_init( &WorkItemContext->list );
-    deviceContext->NumberOfWorkItemInProcessingQueue--;
+	list_del_init( &WorkItemContext->list );
+	deviceContext->NumberOfWorkItemInProcessingQueue--;
 
-    //dev_dbg(dev_ctx_to_dev(deviceContext), "NumberOfWorkItemInProcessingQueue : %d \n", deviceContext->NumberOfWorkItemInProcessingQueue );
+	//dev_dbg(dev_ctx_to_dev(deviceContext), "NumberOfWorkItemInProcessingQueue : %d \n", deviceContext->NumberOfWorkItemInProcessingQueue );
 
-    if ( NULL != WorkItemContext)
-        kfree(WorkItemContext);
+	if ( NULL != WorkItemContext)
+		kfree(WorkItemContext);
 
-    spin_unlock_irqrestore( &deviceContext->SpinLockWorkItemQueue , flags );
+	spin_unlock_irqrestore( &deviceContext->SpinLockWorkItemQueue , flags );
 }
 
 void
 WORK_ITEM_Submit(
-    PWORK_ITEM_CONTEXT WorkItemContext
+	PWORK_ITEM_CONTEXT WorkItemContext
 )
 {
-    PDEVICE_CONTEXT deviceContext;
-    unsigned long flags;
+	PDEVICE_CONTEXT deviceContext;
+	unsigned long flags;
 
-    deviceContext = ( PDEVICE_CONTEXT )WorkItemContext->DeviceContextPvoid;
-    if (!deviceContext) {
-        printk(KERN_ERR "ERROR %s deviceContext null\n", __FUNCTION__);
-        return;
-    }
+	deviceContext = ( PDEVICE_CONTEXT )WorkItemContext->DeviceContextPvoid;
+	if (!deviceContext) {
+		printk(KERN_ERR "ERROR %s deviceContext null\n", __FUNCTION__);
+		return;
+	}
 
-    spin_lock_irqsave(&deviceContext->SpinLockWorkItemQueue, flags);
+	spin_lock_irqsave(&deviceContext->SpinLockWorkItemQueue, flags);
 
-    INIT_DELAYED_WORK(&WorkItemContext->WorkItem,
-                      WorkItemContext->WorkItemProcess);
+	INIT_DELAYED_WORK(&WorkItemContext->WorkItem,
+					  WorkItemContext->WorkItemProcess);
 
-    list_add_tail(&WorkItemContext->list,
-                  &deviceContext->WorkItemProcessingQueue);
+	list_add_tail(&WorkItemContext->list,
+				  &deviceContext->WorkItemProcessingQueue);
 
-    deviceContext->NumberOfWorkItemInProcessingQueue++;
+	deviceContext->NumberOfWorkItemInProcessingQueue++;
 
-    queue_delayed_work(deviceContext->WorkItemQueue, &WorkItemContext->WorkItem, 0 );
+	queue_delayed_work(deviceContext->WorkItemQueue, &WorkItemContext->WorkItem, 0 );
 
-    spin_unlock_irqrestore(&deviceContext->SpinLockWorkItemQueue, flags);
+	spin_unlock_irqrestore(&deviceContext->SpinLockWorkItemQueue, flags);
 }
 
 void
 WORK_ITEM_Process_MessageHandle(
-    struct work_struct* WorkItem
-    )
+	struct work_struct* WorkItem
+	)
 {
-    PWORK_ITEM_CONTEXT workItemContext;
-    PDEVICE_CONTEXT deviceContext;
+	PWORK_ITEM_CONTEXT workItemContext;
+	PDEVICE_CONTEXT deviceContext;
 
-    workItemContext = container_of( WorkItem,
-                                    WORK_ITEM_CONTEXT,
-                                    WorkItem.work );
+	workItemContext = container_of( WorkItem,
+									WORK_ITEM_CONTEXT,
+									WorkItem.work );
 
-    deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
+	deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
 
-    MESSAGE_Parsing( deviceContext,
-                     workItemContext->DataBuffer,
-                     workItemContext->DataBufferLength );
+	MESSAGE_Parsing( deviceContext,
+					 workItemContext->DataBuffer,
+					 workItemContext->DataBufferLength );
 
-    WORK_ITEM_Destroy( workItemContext );
+	WORK_ITEM_Destroy( workItemContext );
 }
 
 void
 WORK_ITEM_Process_GenericBulkOutUrbSubmit(
-    struct work_struct* WorkItem
-    )
+	struct work_struct* WorkItem
+	)
 {
-    int status;
-    PWORK_ITEM_CONTEXT workItemContext;
-    PDEVICE_CONTEXT deviceContext;
-    PURB_CONTEXT urbContext;
-    u8* dataBuffer;
-    int dataBufferLength;
+	int status;
+	PWORK_ITEM_CONTEXT workItemContext;
+	PDEVICE_CONTEXT deviceContext;
+	PURB_CONTEXT urbContext;
+	u8* dataBuffer;
+	int dataBufferLength;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    urbContext = NULL;
-    dataBuffer = NULL;
+	urbContext = NULL;
+	dataBuffer = NULL;
 
-    printk(KERN_DEBUG "WORK_ITEM_Process_GenericBulkOutUrbSubmit: WorkItem=0x%p", WorkItem );
+	printk(KERN_DEBUG "WORK_ITEM_Process_GenericBulkOutUrbSubmit: WorkItem=0x%p", WorkItem );
 
-    workItemContext = container_of( WorkItem,
-                                    WORK_ITEM_CONTEXT,
-                                    WorkItem.work );
-    ASSERT( NULL != workItemContext );
+	workItemContext = container_of( WorkItem,
+									WORK_ITEM_CONTEXT,
+									WorkItem.work );
+	ASSERT( NULL != workItemContext );
 
-    printk(KERN_DEBUG "WORK_ITEM_Process_GenericBulkOutUrbSubmit: workItemContext=0x%p", workItemContext );
-    printk(KERN_DEBUG "WORK_ITEM_Process_GenericBulkOutUrbSubmit: From : %d \n", workItemContext->FromWhere );
+	printk(KERN_DEBUG "WORK_ITEM_Process_GenericBulkOutUrbSubmit: workItemContext=0x%p", workItemContext );
+	printk(KERN_DEBUG "WORK_ITEM_Process_GenericBulkOutUrbSubmit: From : %d \n", workItemContext->FromWhere );
 
-    deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
-    ASSERT( NULL != deviceContext );
+	deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
+	ASSERT( NULL != deviceContext );
 
-    status = DEVICECONTEXT_ErrorCheck( deviceContext );
-    if (status < 0)
-    {
-        goto Exit;
-    }
+	status = DEVICECONTEXT_ErrorCheck( deviceContext );
+	if (status < 0)
+	{
+		goto Exit;
+	}
 
-    dataBuffer = workItemContext->DataBuffer;
-    dataBufferLength = workItemContext->DataBufferLength;
+	dataBuffer = workItemContext->DataBuffer;
+	dataBufferLength = workItemContext->DataBufferLength;
 
-    urbContext = URB_Create(deviceContext,
-                            deviceContext->UsbContext.UsbDevice,
-                            deviceContext->UsbContext.UsbPipeBulkOut,
-                            dataBufferLength,
-                            URB_CompletionRoutine_Simple,
-                            NULL,
-                            GFP_KERNEL);
-    if ( NULL == urbContext )
-    {
-        dev_err(dev_ctx_to_dev(deviceContext), "ERROR WORK_ITEM_Process_GenericBulkOutUrbSubmit: URB_Create fail!" );
-        goto Exit;
-    }
+	urbContext = URB_Create(deviceContext,
+							deviceContext->UsbContext.UsbDevice,
+							deviceContext->UsbContext.UsbPipeBulkOut,
+							dataBufferLength,
+							URB_CompletionRoutine_Simple,
+							NULL,
+							GFP_KERNEL);
+	if ( NULL == urbContext )
+	{
+		dev_err(dev_ctx_to_dev(deviceContext), "ERROR WORK_ITEM_Process_GenericBulkOutUrbSubmit: URB_Create fail!" );
+		goto Exit;
+	}
 
-    memcpy(urbContext->Urb->transfer_buffer, dataBuffer, dataBufferLength);
-    urbContext->Urb->transfer_buffer_length = dataBufferLength;
+	memcpy(urbContext->Urb->transfer_buffer, dataBuffer, dataBufferLength);
+	urbContext->Urb->transfer_buffer_length = dataBufferLength;
 
-    status = URB_Submit( urbContext );
-    if (status < 0)
-    {
-        dev_err(dev_ctx_to_dev(deviceContext), "ERROR WORK_ITEM_Process_GenericBulkOutUrbSubmit: URB_Submit fail! %d\n", status );
-        goto Exit;
-    }
+	status = URB_Submit( urbContext );
+	if (status < 0)
+	{
+		dev_err(dev_ctx_to_dev(deviceContext), "ERROR WORK_ITEM_Process_GenericBulkOutUrbSubmit: URB_Submit fail! %d\n", status );
+		goto Exit;
+	}
 
-    status = NOTIFICATION_Wait( deviceContext,
-                                &urbContext->Event,
-                                NOTIFICATION_EVENT_TIMEOUT );
-    if (status < 0)
-    {
-        dev_err(dev_ctx_to_dev(deviceContext), "ERROR WORK_ITEM_Process_GenericBulkOutUrbSubmit: Wait fail! %d\n", status );
-        goto Exit;
-    }
+	status = NOTIFICATION_Wait( deviceContext,
+								&urbContext->Event,
+								NOTIFICATION_EVENT_TIMEOUT );
+	if (status < 0)
+	{
+		dev_err(dev_ctx_to_dev(deviceContext), "ERROR WORK_ITEM_Process_GenericBulkOutUrbSubmit: Wait fail! %d\n", status );
+		goto Exit;
+	}
 
 Exit:
 
-    URB_Destroy( urbContext );
+	URB_Destroy( urbContext );
 
-    WORK_ITEM_Destroy( workItemContext );
+	WORK_ITEM_Destroy( workItemContext );
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 }
 
 void
 WORK_ITEM_Process_MessageHandleEmbeddedEmbeddedRegisterRead(
-    struct work_struct* WorkItem
-    )
+	struct work_struct* WorkItem
+	)
 {
-    PWORK_ITEM_CONTEXT workItemContext;
-    PDEVICE_CONTEXT deviceContext;
-    u32* data;
+	PWORK_ITEM_CONTEXT workItemContext;
+	PDEVICE_CONTEXT deviceContext;
+	u32* data;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    workItemContext = container_of( WorkItem,
-                                    WORK_ITEM_CONTEXT,
-                                    WorkItem.work );
+	workItemContext = container_of( WorkItem,
+									WORK_ITEM_CONTEXT,
+									WorkItem.work );
 
-    deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
+	deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
 
-    data = ( u32* )workItemContext->DataBuffer;
+	data = ( u32* )workItemContext->DataBuffer;
 
-    deviceContext->DataEmbeddedRegisterRead = *data;
+	deviceContext->DataEmbeddedRegisterRead = *data;
 
-    NOTIFICATION_Notify( deviceContext,
-                         &deviceContext->CompletionEventEmbeddedRegisterRead );
+	NOTIFICATION_Notify( deviceContext,
+						 &deviceContext->CompletionEventEmbeddedRegisterRead );
 
-    WORK_ITEM_Destroy( workItemContext );
+	WORK_ITEM_Destroy( workItemContext );
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 }
 
 void
 WORK_ITEM_Process_MessageHandleEmbeddedEventTrb(
-    struct work_struct* WorkItem
-    )
+	struct work_struct* WorkItem
+	)
 {
-    PWORK_ITEM_CONTEXT workItemContext;
-    PDEVICE_CONTEXT deviceContext;
-    struct xhci_generic_trb *eventTrb;
+	PWORK_ITEM_CONTEXT workItemContext;
+	PDEVICE_CONTEXT deviceContext;
+	struct xhci_generic_trb *eventTrb;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    workItemContext = container_of( WorkItem,
-                                    WORK_ITEM_CONTEXT,
-                                    WorkItem.work );
+	workItemContext = container_of( WorkItem,
+									WORK_ITEM_CONTEXT,
+									WorkItem.work );
 
-    deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
+	deviceContext = ( PDEVICE_CONTEXT )workItemContext->DeviceContextPvoid;
 
-    eventTrb = ( struct xhci_generic_trb * )workItemContext->DataBuffer;
+	eventTrb = ( struct xhci_generic_trb * )workItemContext->DataBuffer;
 
-    ehub_xhci_handle_event( deviceContext->UsbContext.xhci_hcd, *eventTrb );
+	ehub_xhci_handle_event( deviceContext->UsbContext.xhci_hcd, *eventTrb );
 
-    WORK_ITEM_Destroy( workItemContext );
+	WORK_ITEM_Destroy( workItemContext );
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 }
 

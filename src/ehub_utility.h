@@ -24,7 +24,7 @@
 #define KDEBUG_MESSAGE_PREFIX        "[EHUB]"
 
 #define KOUT( Format, Arguments...) \
-    do { printk(KERN_ERR "%s" Format , KDEBUG_MESSAGE_PREFIX , ## Arguments); } while (0)
+	do { printk(KERN_ERR "%s" Format , KDEBUG_MESSAGE_PREFIX , ## Arguments); } while (0)
 
 #ifdef USE_FUNCTION_ENTRY
 #define FUNCTION_ENTRY KOUT( "%s >>> \n", __FUNCTION__ )
@@ -43,30 +43,30 @@
 #endif
 
 #ifdef USE_KGDB_BP
-    #define KGDB_BP kgdb_breakpoint();
+	#define KGDB_BP kgdb_breakpoint();
 #else
-    #define KGDB_BP {};
+	#define KGDB_BP {};
 #endif
 
 #ifdef USE_KERNEL_PANIC
 #define KERNEL_PANIC( _KERNEL_PANIC_MESSAGE_ ) \
-    do { \
-         printk(KERN_ERR _KERNEL_PANIC_MESSAGE_ ); \
-         KGDB_BP \
-         panic( _KERNEL_PANIC_MESSAGE_); } while (0)
+	do { \
+		 printk(KERN_ERR _KERNEL_PANIC_MESSAGE_ ); \
+		 KGDB_BP \
+		 panic( _KERNEL_PANIC_MESSAGE_); } while (0)
 #else
 #define KERNEL_PANIC( _KERNEL_PANIC_MESSAGE_ ) \
-    do { \
-        printk(KERN_ERR _KERNEL_PANIC_MESSAGE_ ); \
-        KGDB_BP \
-    } while (0)
+	do { \
+		printk(KERN_ERR _KERNEL_PANIC_MESSAGE_ ); \
+		KGDB_BP \
+	} while (0)
 #endif
 
 /* TODO EHUB add an error message here for when gdb isn't available */
 #define ASSERT(x) \
-    do { if (!(x)) KGDB_BP; } while (0)
+	do { if (!(x)) KGDB_BP; } while (0)
 
 #define ehub_xhci_err(xhci, fmt, args...) \
-    dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 
 #endif

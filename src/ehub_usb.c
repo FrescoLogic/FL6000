@@ -31,162 +31,162 @@
 
 int
 USB_InterfaceCreateBulk(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 )
 {
-    int status;
+	int status;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    status = usb_set_interface(DeviceContext->UsbContext.UsbDevice,
-                               EHUB_INTERFACE_NUMBER_BULK,
-                               EHUB_INTERFACE_ALTERNATE_SETTING_BULK);
-    if (status < 0)
-    {
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_set_interface fail! %d\n", status );
-        goto Exit;
-    }
+	status = usb_set_interface(DeviceContext->UsbContext.UsbDevice,
+							   EHUB_INTERFACE_NUMBER_BULK,
+							   EHUB_INTERFACE_ALTERNATE_SETTING_BULK);
+	if (status < 0)
+	{
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_set_interface fail! %d\n", status );
+		goto Exit;
+	}
 
-    status = MESSAGE_StartLoopBulk( DeviceContext );
+	status = MESSAGE_StartLoopBulk( DeviceContext );
 
 Exit:
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 
-    return status;
+	return status;
 }
 
 int
 USB_InterfaceCreateInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    int status;
+	int status;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    status = usb_set_interface( DeviceContext->UsbContext.UsbDevice,
-                                EHUB_INTERFACE_NUMBER_INTERRUPT,
-                                EHUB_INTERFACE_ALTERNATE_SETTING_INTERRUPT );
-    if (status < 0) {
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_set_interface fail! %d\n", status );
-        goto Exit;
-    }
+	status = usb_set_interface( DeviceContext->UsbContext.UsbDevice,
+								EHUB_INTERFACE_NUMBER_INTERRUPT,
+								EHUB_INTERFACE_ALTERNATE_SETTING_INTERRUPT );
+	if (status < 0) {
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_set_interface fail! %d\n", status );
+		goto Exit;
+	}
 
-    status = MESSAGE_StartLoopInterrupt( DeviceContext );
+	status = MESSAGE_StartLoopInterrupt( DeviceContext );
 
 Exit:
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 
-    return status;
+	return status;
 }
 
 int
 USB_InterfaceDestroyBulk(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    MESSAGE_StopLoopBulk( DeviceContext );
-    return 0;
+	MESSAGE_StopLoopBulk( DeviceContext );
+	return 0;
 }
 
 int
 USB_InterfaceDestroyInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    MESSAGE_StopLoopInterrupt( DeviceContext );
-    return 0;
+	MESSAGE_StopLoopInterrupt( DeviceContext );
+	return 0;
 }
 
 int
 USB_InterfaceSuspendBulk(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    MESSAGE_StopLoopBulk( DeviceContext );
-    return 0;
+	MESSAGE_StopLoopBulk( DeviceContext );
+	return 0;
 }
 
 int
 USB_InterfaceSuspendInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    MESSAGE_StopLoopInterrupt( DeviceContext );
-    return 0;
+	MESSAGE_StopLoopInterrupt( DeviceContext );
+	return 0;
 }
 
 int
 USB_InterfaceResumeBulk(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    return MESSAGE_StartLoopBulk( DeviceContext );
+	return MESSAGE_StartLoopBulk( DeviceContext );
 }
 
 int
 USB_InterfaceResumeInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    )
+	PDEVICE_CONTEXT DeviceContext
+	)
 {
-    return MESSAGE_StartLoopInterrupt( DeviceContext );
+	return MESSAGE_StartLoopInterrupt( DeviceContext );
 }
 
 #ifdef EHUB_ISOCH_ENABLE
 int
 USB_InterfaceCreateIsoch(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 )
 {
-    int status;
+	int status;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    status = usb_set_interface(DeviceContext->UsbContext.UsbDevice,
-                               EHUB_INTERFACE_NUMBER_ISOCH,
-                               EHUB_INTERFACE_ALTERNATE_SETTING_ISOCH);
-    if (status < 0) {
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_set_interface fail! %d\n", status);
-        goto Exit;
-    }
+	status = usb_set_interface(DeviceContext->UsbContext.UsbDevice,
+							   EHUB_INTERFACE_NUMBER_ISOCH,
+							   EHUB_INTERFACE_ALTERNATE_SETTING_ISOCH);
+	if (status < 0) {
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_set_interface fail! %d\n", status);
+		goto Exit;
+	}
 
-    status = MESSAGE_StartLoopIsoch(DeviceContext);
+	status = MESSAGE_StartLoopIsoch(DeviceContext);
 
-    if (status < 0)
-        MESSAGE_StopLoopIsoch(DeviceContext);
+	if (status < 0)
+		MESSAGE_StopLoopIsoch(DeviceContext);
 
 Exit:
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 
-    return status;
+	return status;
 }
 
 int
 USB_InterfaceDestroyIsoch(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 )
 {
-    MESSAGE_StopLoopIsoch(DeviceContext);
-    return 0;
+	MESSAGE_StopLoopIsoch(DeviceContext);
+	return 0;
 }
 
 int
 USB_InterfaceSuspendIsoch(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 )
 {
-    MESSAGE_StopLoopIsoch(DeviceContext);
-    return 0;
+	MESSAGE_StopLoopIsoch(DeviceContext);
+	return 0;
 }
 
 int
 USB_InterfaceResumeIsoch(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 )
 {
-    return MESSAGE_StartLoopIsoch( DeviceContext );
+	return MESSAGE_StartLoopIsoch( DeviceContext );
 }
 #endif /* EHUB_ISOCH_ENABLE */

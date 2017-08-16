@@ -32,169 +32,169 @@
 
 int
 REGISTER_Transfer(
-    PDEVICE_CONTEXT DeviceContext,
-    int ReadWrite,
-    u32 Offset,
-    u32* Data
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	int ReadWrite,
+	u32 Offset,
+	u32* Data
+	)
 {
-    int status;
-    u8 bRequest;
-    u8 bRequestType;
-    u16 wValue;
-    u16 wIndex;
-    char *dataBuffer;
-    unsigned int usbPipe;
+	int status;
+	u8 bRequest;
+	u8 bRequestType;
+	u16 wValue;
+	u16 wIndex;
+	char *dataBuffer;
+	unsigned int usbPipe;
 
-    dataBuffer = kzalloc( NUMBER_OF_BYTES_IN_REGISTER_DATA, GFP_ATOMIC );
+	dataBuffer = kzalloc( NUMBER_OF_BYTES_IN_REGISTER_DATA, GFP_ATOMIC );
 
-    if ( ReadWrite == REGISTER_READ )
-    {
-        // Read
-        //
-        bRequest = CONTROL_ENDPOINT_I2C_CMD_READ;
-        bRequestType = USB_DIR_IN | USB_TYPE_VENDOR;
+	if ( ReadWrite == REGISTER_READ )
+	{
+		// Read
+		//
+		bRequest = CONTROL_ENDPOINT_I2C_CMD_READ;
+		bRequestType = USB_DIR_IN | USB_TYPE_VENDOR;
 
-        memset( dataBuffer, 0, NUMBER_OF_BYTES_IN_REGISTER_DATA);
+		memset( dataBuffer, 0, NUMBER_OF_BYTES_IN_REGISTER_DATA);
 
-        usbPipe = usb_rcvctrlpipe( DeviceContext->UsbContext.UsbDevice,
-                                   EHUB_ENDPOINT_NUMBER_CONTROL );
-    }
-    else
-    {
-        // Write
-        //
-        bRequest = CONTROL_ENDPOINT_I2C_CMD_WRITE;
-        bRequestType = USB_DIR_OUT | USB_TYPE_VENDOR;
+		usbPipe = usb_rcvctrlpipe( DeviceContext->UsbContext.UsbDevice,
+								   EHUB_ENDPOINT_NUMBER_CONTROL );
+	}
+	else
+	{
+		// Write
+		//
+		bRequest = CONTROL_ENDPOINT_I2C_CMD_WRITE;
+		bRequestType = USB_DIR_OUT | USB_TYPE_VENDOR;
 
-        memcpy( dataBuffer, Data, NUMBER_OF_BYTES_IN_REGISTER_DATA );
+		memcpy( dataBuffer, Data, NUMBER_OF_BYTES_IN_REGISTER_DATA );
 
-        usbPipe = usb_sndctrlpipe( DeviceContext->UsbContext.UsbDevice,
-                                   EHUB_ENDPOINT_NUMBER_CONTROL );
-    }
+		usbPipe = usb_sndctrlpipe( DeviceContext->UsbContext.UsbDevice,
+								   EHUB_ENDPOINT_NUMBER_CONTROL );
+	}
 
-    wValue = 0;
-    wIndex = ( u16 )Offset;
+	wValue = 0;
+	wIndex = ( u16 )Offset;
 
-    status = usb_control_msg( DeviceContext->UsbContext.UsbDevice,
-                              usbPipe,
-                              bRequest,
-                              bRequestType,
-                              wValue,
-                              wIndex,
-                              dataBuffer,
-                              NUMBER_OF_BYTES_IN_REGISTER_DATA,
-                              HZ );
-    if ( status > 0 )
-    {
-        if ( ReadWrite == REGISTER_READ )
-        {
-            memcpy( Data, dataBuffer, NUMBER_OF_BYTES_IN_REGISTER_DATA );
-        }
-    }
+	status = usb_control_msg( DeviceContext->UsbContext.UsbDevice,
+							  usbPipe,
+							  bRequest,
+							  bRequestType,
+							  wValue,
+							  wIndex,
+							  dataBuffer,
+							  NUMBER_OF_BYTES_IN_REGISTER_DATA,
+							  HZ );
+	if ( status > 0 )
+	{
+		if ( ReadWrite == REGISTER_READ )
+		{
+			memcpy( Data, dataBuffer, NUMBER_OF_BYTES_IN_REGISTER_DATA );
+		}
+	}
 
-    if ( NULL != dataBuffer )
-        kfree( dataBuffer );
+	if ( NULL != dataBuffer )
+		kfree( dataBuffer );
 
-    return status;
+	return status;
 }
 
 inline int
 REGISTER_Write(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32* Data
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32* Data
+	)
 {
-    int status;
+	int status;
 
-    status = REGISTER_Transfer( DeviceContext,
-                                REGISTER_WRITE,
-                                Offset,
-                                Data );
+	status = REGISTER_Transfer( DeviceContext,
+								REGISTER_WRITE,
+								Offset,
+								Data );
 
-    return status;
+	return status;
 }
 
 inline int
 REGISTER_Read(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32* Data
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32* Data
+	)
 {
-    int status;
+	int status;
 
-    *Data = 0;
+	*Data = 0;
 
-    status = REGISTER_Transfer( DeviceContext,
-                                REGISTER_READ,
-                                Offset,
-                                Data );
+	status = REGISTER_Transfer( DeviceContext,
+								REGISTER_READ,
+								Offset,
+								Data );
 
-    return status;
+	return status;
 }
 
 void
 REGISTER_SetBit(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32 BitOffset
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32 BitOffset
+	)
 {
-    int status;
-    u32 data;
+	int status;
+	u32 data;
 
-    status = REGISTER_Read( DeviceContext,
-                            Offset,
-                            &data );
-    if ( ! status )
-    {
-        goto Exit;
-    }
+	status = REGISTER_Read( DeviceContext,
+							Offset,
+							&data );
+	if ( ! status )
+	{
+		goto Exit;
+	}
 
-    data |= ( 1 << BitOffset );
+	data |= ( 1 << BitOffset );
 
-    status = REGISTER_Write( DeviceContext,
-                             Offset,
-                             &data );
-    if ( ! status )
-    {
-        goto Exit;
-    }
+	status = REGISTER_Write( DeviceContext,
+							 Offset,
+							 &data );
+	if ( ! status )
+	{
+		goto Exit;
+	}
 
 Exit:
-    ;
+	;
 }
 
 void
 REGISTER_ClearBit(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Offset,
-    u32 BitOffset
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Offset,
+	u32 BitOffset
+	)
 {
-    int status;
-    u32 data;
+	int status;
+	u32 data;
 
-    status = REGISTER_Read( DeviceContext,
-                            Offset,
-                            &data );
-    if ( ! status )
-    {
-        goto Exit;
-    }
+	status = REGISTER_Read( DeviceContext,
+							Offset,
+							&data );
+	if ( ! status )
+	{
+		goto Exit;
+	}
 
-    data &= ~( 1 << BitOffset );
+	data &= ~( 1 << BitOffset );
 
-    status = REGISTER_Write( DeviceContext,
-                             Offset,
-                             &data );
-    if ( ! status )
-    {
-        goto Exit;
-    }
+	status = REGISTER_Write( DeviceContext,
+							 Offset,
+							 &data );
+	if ( ! status )
+	{
+		goto Exit;
+	}
 
 Exit:
-    ;
+	;
 }

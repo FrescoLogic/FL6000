@@ -23,59 +23,59 @@
 
 typedef union _EMBEDDED_REGISTER_COMMAND_
 {
-    struct
-    {
-        u32 Read:1;
-        u32 Write:1;
-        u32 Rsvd0:3;
-        u32 RegAccess:1;
-        u32 TrafficClass:2; // 0 = async, 1 = iso, 2 = intr
-        u32 ByteEnables:8;  // Byte enables for 8 bytes of data LSbit == LSByte
-        u32 Address:16;
-    };
-    u32 Value;
+	struct
+	{
+		u32 Read:1;
+		u32 Write:1;
+		u32 Rsvd0:3;
+		u32 RegAccess:1;
+		u32 TrafficClass:2; // 0 = async, 1 = iso, 2 = intr
+		u32 ByteEnables:8;  // Byte enables for 8 bytes of data LSbit == LSByte
+		u32 Address:16;
+	};
+	u32 Value;
 } EMBEDDED_REGISTER_COMMAND, *PEMBEDDED_REGISTER_COMMAND;
 
 typedef union _EMBEDDED_REGISTER_DATA_RESPONSE_
 {
-    struct
-    {
-        EMBEDDED_REGISTER_COMMAND EmbeddedRegisterCommand;
-        u32 Resv[ 2 ];
-        u32 Data;
-    };
-    u32 Dwords[ 4 ];
+	struct
+	{
+		EMBEDDED_REGISTER_COMMAND EmbeddedRegisterCommand;
+		u32 Resv[ 2 ];
+		u32 Data;
+	};
+	u32 Dwords[ 4 ];
 } EMBEDDED_REGISTER_DATA_RESPONSE, *PEMBEDDED_REGISTER_DATA_RESPONSE;
 
 typedef union _EMBEDDED_REGISTER_DATA_TRANSFER_
 {
-    struct
-    {
-        EMBEDDED_REGISTER_COMMAND EmbeddedRegisterCommand;
-        u32 Data;
-    };
-    u32 Dwords[ 2 ];
+	struct
+	{
+		EMBEDDED_REGISTER_COMMAND EmbeddedRegisterCommand;
+		u32 Data;
+	};
+	u32 Dwords[ 2 ];
 } EMBEDDED_REGISTER_DATA_TRANSFER, *PEMBEDDED_REGISTER_DATA_TRANSFER;
 
 int
 EMBEDDED_REGISTER_Read(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Address,
-    u32* Data
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Address,
+	u32* Data
+	);
 
 int
 EMBEDDED_REGISTER_Write(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Address,
-    u32* Data
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Address,
+	u32* Data
+	);
 
 int
 EMBEDDED_REGISTER_Write_Doorbell(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Address,
-    u32* Data
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Address,
+	u32* Data
+	);
 
 #endif

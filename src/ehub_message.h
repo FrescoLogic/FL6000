@@ -29,57 +29,57 @@
 
 typedef union _EMBEDDED_GENERIC_HEADER_
 {
-    struct
-    {
-        u32 Read:1;
-        u32 Write:1;
-        u32 Rsvd0:3;
-        u32 RegAccess:1;
-        u32 Rsvd1:18;
-        u32 RequestId:3;
-        u32 Rsvd2:5;
-    };
-    u32 Value;
+	struct
+	{
+		u32 Read:1;
+		u32 Write:1;
+		u32 Rsvd0:3;
+		u32 RegAccess:1;
+		u32 Rsvd1:18;
+		u32 RequestId:3;
+		u32 Rsvd2:5;
+	};
+	u32 Value;
 } EMBEDDED_GENERIC_HEADER, *PEMBEDDED_GENERIC_HEADER;
 
 void
 MESSAGE_Parsing(
-    PDEVICE_CONTEXT DeviceContext,
-    u8* DataBuffer,
-    int DataBufferLength
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	u8* DataBuffer,
+	int DataBufferLength
+	);
 
 int
 MESSAGE_StartLoopBulk(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 MESSAGE_StartLoopInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 
 #ifdef EHUB_ISOCH_ENABLE
 int
 MESSAGE_StartLoopIsoch(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 );
 
 void
 MESSAGE_StopLoopIsoch(
-    PDEVICE_CONTEXT DeviceContext
+	PDEVICE_CONTEXT DeviceContext
 );
 #endif /* EHUB_ISOCH_ENABLE */
 
 void
 MESSAGE_StopLoopBulk(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 void
 MESSAGE_StopLoopInterrupt(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 #endif
