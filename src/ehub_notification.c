@@ -22,64 +22,64 @@
 
 int
 NOTIFICATION_Wait(
-    PDEVICE_CONTEXT DeviceContext,
-    struct completion* NotificationEvent,
-    int ExpireInMs
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	struct completion* NotificationEvent,
+	int ExpireInMs
+	)
 {
-    int status = 0;
-    u32 expire;
-    long waited;
+	int status = 0;
+	u32 expire;
+	long waited;
 
-    expire = ExpireInMs ? msecs_to_jiffies( ExpireInMs ) : MAX_SCHEDULE_TIMEOUT;
+	expire = ExpireInMs ? msecs_to_jiffies( ExpireInMs ) : MAX_SCHEDULE_TIMEOUT;
 
 #ifdef USE_FUNCTION_ENTRY
-    dev_dbg ( dev_ctx_to_dev ( DeviceContext ), "from %ps %dms\n",
-                __builtin_return_address ( 0 ), jiffies_to_msecs(expire) );
+	dev_dbg(dev_ctx_to_dev(DeviceContext), "from %ps %dms\n",
+			__builtin_return_address(0), jiffies_to_msecs(expire));
 #endif
 
-    status = DEVICECONTEXT_ErrorCheck(DeviceContext);
-    if (status < 0) {
-        return -ESHUTDOWN;
-    }
+	status = DEVICECONTEXT_ErrorCheck(DeviceContext);
+	if (status < 0) {
+		return -ESHUTDOWN;
+	}
 
-    waited = wait_for_completion_interruptible_timeout( NotificationEvent, expire);
-    if ( waited > 0)
-    {
+	waited = wait_for_completion_interruptible_timeout( NotificationEvent, expire);
+	if ( waited > 0)
+	{
 #ifdef USE_FUNCTION_LEAVE
-        dev_dbg(dev_ctx_to_dev(DeviceContext), "from %ps waited %dms\n",
-                __builtin_return_address(0), jiffies_to_msecs(waited));
+		dev_dbg(dev_ctx_to_dev(DeviceContext), "from %ps waited %dms\n",
+				__builtin_return_address(0), jiffies_to_msecs(waited));
 #endif
-    }
-    else if (waited == 0)
-    {
-        status = -ETIMEDOUT;
-        dev_err(dev_ctx_to_dev(DeviceContext), "from %ps TIMEOUT after %dms\n",
-                    __builtin_return_address ( 0 ), jiffies_to_msecs(expire) );
-    }
-    else
-    {
-        status = -EINVAL;
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR from %ps %ld\n",
-                __builtin_return_address(0), waited);
-    }
+	}
+	else if (waited == 0)
+	{
+		status = -ETIMEDOUT;
+		dev_err(dev_ctx_to_dev(DeviceContext), "from %ps TIMEOUT after %dms\n",
+				__builtin_return_address(0), jiffies_to_msecs(expire));
+	}
+	else
+	{
+		status = -EINVAL;
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR from %ps %ld\n",
+				__builtin_return_address(0), waited);
+	}
 
-    return status;
+	return status;
 }
 
 void
 NOTIFICATION_Reset(
-    struct completion* NotificationEvent
-    )
+	struct completion* NotificationEvent
+	)
 {
-    init_completion( NotificationEvent );
+	init_completion( NotificationEvent );
 }
 
 void
 NOTIFICATION_Notify(
-    PDEVICE_CONTEXT DeviceContext,
-    struct completion* NotificationEvent
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	struct completion* NotificationEvent
+	)
 {
-    complete( NotificationEvent );
+	complete( NotificationEvent );
 }

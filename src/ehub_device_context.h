@@ -57,117 +57,117 @@
 
 typedef struct _USB_CONTEXT_
 {
-    struct usb_device* UsbDevice;
-    struct device* Device;
-    void *xhci_hcd;
-    unsigned int UsbPipeBulkIn;
-    unsigned int UsbPipeBulkOut;
-    unsigned int UsbPipeInterruptIn;
-    unsigned int UsbPipeInterruptOut;
-    unsigned int UsbPipeIsochIn;
-    unsigned int UsbPipeIsochOut;
-    unsigned int IsUsbHcdInvalid;
-    unsigned int UsbPipeCacheOut;
-    unsigned int UsbPipeDoorbellOut;
+	struct usb_device* UsbDevice;
+	struct device* Device;
+	void *xhci_hcd;
+	unsigned int UsbPipeBulkIn;
+	unsigned int UsbPipeBulkOut;
+	unsigned int UsbPipeInterruptIn;
+	unsigned int UsbPipeInterruptOut;
+	unsigned int UsbPipeIsochIn;
+	unsigned int UsbPipeIsochOut;
+	unsigned int IsUsbHcdInvalid;
+	unsigned int UsbPipeCacheOut;
+	unsigned int UsbPipeDoorbellOut;
 } USB_CONTEXT, *PUSB_CONTEXT;
 
 typedef struct _WORK_ITEM_CONTEXT_
 {
-    struct list_head list;
-    void* DeviceContextPvoid;
-    struct delayed_work WorkItem;
-    void ( *WorkItemProcess )( struct work_struct * );
-    u8* DataBuffer;
-    int DataBufferLength;
-    int FromWhere;
+	struct list_head list;
+	void* DeviceContextPvoid;
+	struct delayed_work WorkItem;
+	void ( *WorkItemProcess )( struct work_struct * );
+	u8* DataBuffer;
+	int DataBufferLength;
+	int FromWhere;
 } WORK_ITEM_CONTEXT, *PWORK_ITEM_CONTEXT;
 
 typedef struct _URB_CONTEXT_
 {
-    void* DeviceContextPvoid;
-    struct urb* Urb;
-    struct completion Event;
-    u8* DataBuffer;
-    u32 DataBufferLength;
-    dma_addr_t DataBufferDma;
-    struct usb_device *Dev;
-    int UrbCompletionStatus;
-    int ActualLength;
-    int Status;
-    struct list_head list;
+	void* DeviceContextPvoid;
+	struct urb* Urb;
+	struct completion Event;
+	u8* DataBuffer;
+	u32 DataBufferLength;
+	dma_addr_t DataBufferDma;
+	struct usb_device *Dev;
+	int UrbCompletionStatus;
+	int ActualLength;
+	int Status;
+	struct list_head list;
 } URB_CONTEXT, *PURB_CONTEXT;
 
 typedef struct _MICROFRAME_COUNTER_CONTEXT_
 {
-    u64 PerformanceFrequency;
-    u64 TicksPerMicroframe;
-    u64 LastPerformanceCount;
-    u32 LastMicroframeCount;
+	u64 PerformanceFrequency;
+	u64 TicksPerMicroframe;
+	u64 LastPerformanceCount;
+	u32 LastMicroframeCount;
 } MICROFRAME_COUNTER_CONTEXT, *PMICROFRAME_COUNTER_CONTEXT;
 
 typedef struct _CONTROL_FLAGS_
 {
-    u32 IsEhubXhciInitReady;
+	u32 IsEhubXhciInitReady;
 } CONTROL_FLAGS, *PCONTROL_FLAGS;
 
 typedef struct _ERROR_FLAGS_
 {
-    u32 UrbContextAllocationError;
-    u32 UsbAllocateUrbError;
-    u32 UsbAllocateCoherentError;
-    u32 EmbeddedRegisterError;
-    u32 EmbeddedCacheWriteError;
+	u32 UrbContextAllocationError;
+	u32 UsbAllocateUrbError;
+	u32 UsbAllocateCoherentError;
+	u32 EmbeddedRegisterError;
+	u32 EmbeddedCacheWriteError;
 } ERROR_FLAGS, *PERROR_FLAGS;
 
 typedef struct _DEVICE_CONTEXT_
 {
-    struct usb_interface* InterfaceBackup;
+	struct usb_interface* InterfaceBackup;
 
-    USB_CONTEXT UsbContext;
+	USB_CONTEXT UsbContext;
 
-    /* TODO: EHUB rename generic *Locks as either Mutex or Semaphore they stop changing. */
-    struct mutex MessageHandleEmbeddedMemoryReadCompletionLock;
-    struct semaphore EmbeddedRegisterLock;
+	/* TODO: EHUB rename generic *Locks as either Mutex or Semaphore they stop changing. */
+	struct mutex MessageHandleEmbeddedMemoryReadCompletionLock;
+	struct semaphore EmbeddedRegisterLock;
 
-    spinlock_t SpinLockEmbeddedDoorbellWrite;
+	spinlock_t SpinLockEmbeddedDoorbellWrite;
 
-    struct list_head doorbell_list_free;
-    struct list_head doorbell_list_busy;
+	struct list_head doorbell_list_free;
+	struct list_head doorbell_list_busy;
 
-    struct list_head WorkItemPendingQueue;
-    struct list_head WorkItemProcessingQueue;
+	struct list_head WorkItemPendingQueue;
+	struct list_head WorkItemProcessingQueue;
 
-    struct workqueue_struct *WorkItemQueue;
-    spinlock_t SpinLockWorkItemQueue;
-    int NumberOfWorkItemInProcessingQueue;
+	struct workqueue_struct *WorkItemQueue;
+	spinlock_t SpinLockWorkItemQueue;
+	int NumberOfWorkItemInProcessingQueue;
 
-    int EmbeddedRegisterReadOccupy;
-    int EmbeddedRegisterWriteOccupy;
-    int EmbeddedCacheWriteOccupy;
+	int EmbeddedRegisterReadOccupy;
+	int EmbeddedRegisterWriteOccupy;
+	int EmbeddedCacheWriteOccupy;
 
-    struct completion CompletionEventEmbeddedRegisterRead;
-    u32 DataEmbeddedRegisterRead;
+	struct completion CompletionEventEmbeddedRegisterRead;
+	u32 DataEmbeddedRegisterRead;
 
-    int UrbPendingCount;
+	int UrbPendingCount;
 
-    PURB_CONTEXT UrbContextEmbeddedRegisterRead;
-    PURB_CONTEXT UrbContextEmbeddedRegisterWrite;
+	PURB_CONTEXT UrbContextEmbeddedRegisterRead;
+	PURB_CONTEXT UrbContextEmbeddedRegisterWrite;
 
-    /* TODO: Use a safe method to select entry to use instead of just
-     * grabbing next entry. */
-    PURB_CONTEXT UrbContextEmbeddedMemoryReadCompletion[ NUMBER_OF_MESSAGE_BULK ];
-    int CurrentEmbeddedMemoryReadCompletionUrbContextIndex;
+	/* TODO: Use a safe method to select entry to use instead of just
+	 * grabbing next entry. */
+	PURB_CONTEXT UrbContextEmbeddedMemoryReadCompletion[ NUMBER_OF_MESSAGE_BULK ];
+	int CurrentEmbeddedMemoryReadCompletionUrbContextIndex;
 
-    PURB_CONTEXT UrbContextMessageBulk[ NUMBER_OF_MESSAGE_BULK ];
-    PURB_CONTEXT UrbContextMessageInterrupt[ NUMBER_OF_MESSAGE_BULK ];
-    PURB_CONTEXT UrbContextMessageIsoch[ NUMBER_OF_MESSAGE_ISOCH ];
+	PURB_CONTEXT UrbContextMessageBulk[ NUMBER_OF_MESSAGE_BULK ];
+	PURB_CONTEXT UrbContextMessageInterrupt[ NUMBER_OF_MESSAGE_BULK ];
+	PURB_CONTEXT UrbContextMessageIsoch[ NUMBER_OF_MESSAGE_ISOCH ];
 
-    ERROR_FLAGS     ErrorFlags;
-    CONTROL_FLAGS   ControlFlags;
+	ERROR_FLAGS     ErrorFlags;
+	CONTROL_FLAGS   ControlFlags;
 
-    unsigned int last_uframe_cnt;
-    ktime_t last_uframe_time;
-    ktime_t pending_uframe_time;
+	unsigned int last_uframe_cnt;
+	ktime_t last_uframe_time;
+	ktime_t pending_uframe_time;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 
 #define IS_URB_ERROR( _DeviceContext_ )                      ( _DeviceContext_->ErrorFlags.UrbContextAllocationError )
@@ -178,12 +178,12 @@ DEVICECONTEXT_Create(struct device *dev);
 
 void
 DEVICECONTEXT_Destroy(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 DEVICECONTEXT_ErrorCheck(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 #endif

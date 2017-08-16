@@ -47,66 +47,66 @@
 
 typedef union _EMBEDDED_MEMORY_COMMAND_
 {
-    struct
-    {
-        u32 Read:1;
-        u32 Write:1;
-        u32 Rsvd0:1;
-        u32 MSI:1;          // 1 = this is an interrupt MSI write, 0 = everything else
-        u32 Cache:1;
-        u32 RegAccess:1;
-        u32 TrafficClass:2; // 0 = async, 1 = iso, 2 = intr
-        u32 Length:16;      // Byte enables for 8 bytes of data LSbit == LSByte
-        u32 RequestId:3;    // Request ID
-        u32 Rsvd2:5;        // Request ID
-    };
-    u32 Value;
+	struct
+	{
+		u32 Read:1;
+		u32 Write:1;
+		u32 Rsvd0:1;
+		u32 MSI:1;          // 1 = this is an interrupt MSI write, 0 = everything else
+		u32 Cache:1;
+		u32 RegAccess:1;
+		u32 TrafficClass:2; // 0 = async, 1 = iso, 2 = intr
+		u32 Length:16;      // Byte enables for 8 bytes of data LSbit == LSByte
+		u32 RequestId:3;    // Request ID
+		u32 Rsvd2:5;        // Request ID
+	};
+	u32 Value;
 } EMBEDDED_MEMORY_COMMAND, *PEMBEDDED_MEMORY_COMMAND;
 
 typedef union _EMBEDDED_MEMORY_TRANSFER_
 {
-    struct
-    {
-        EMBEDDED_MEMORY_COMMAND EmbeddedMemoryCommand;
-        u32 AddressLow;
-        u32 AddressHigh;
-    };
-    u32 Dwords[ 3 ];
+	struct
+	{
+		EMBEDDED_MEMORY_COMMAND EmbeddedMemoryCommand;
+		u32 AddressLow;
+		u32 AddressHigh;
+	};
+	u32 Dwords[ 3 ];
 } EMBEDDED_MEMORY_TRANSFER, *PEMBEDDED_MEMORY_TRANSFER;
 
 typedef union _EMBEDDED_CACHE_TRANSFER_
 {
-    struct
-    {
-        EMBEDDED_MEMORY_COMMAND EmbeddedMemoryCommand;
-        u32 Address;
-    };
-    u32 Dwords[ 2 ];
+	struct
+	{
+		EMBEDDED_MEMORY_COMMAND EmbeddedMemoryCommand;
+		u32 Address;
+	};
+	u32 Dwords[ 2 ];
 } EMBEDDED_CACHE_TRANSFER, *PEMBEDDED_CACHE_TRANSFER;
 
 typedef struct _EHUB_CACHE_BLOCK_
 {
-    struct list_head list;
-    struct urb* urb;
-    u32 IndexOfBlock;
-    u32 Address;
+	struct list_head list;
+	struct urb* urb;
+	u32 IndexOfBlock;
+	u32 Address;
 } EHUB_CACHE_BLOCK, *PEHUB_CACHE_BLOCK;
 
 typedef struct _EHUB_CACHE_TRB_
 {
-    struct list_head list;
-    u64 AddrCache;
-    u32 TrbDataField[ 4 ];
+	struct list_head list;
+	u64 AddrCache;
+	u32 TrbDataField[ 4 ];
 } EHUB_CACHE_TRB, *PEHUB_CACHE_TRB;
 
 int
 EMBEDDED_CACHE_Write(
-    PDEVICE_CONTEXT DeviceContext,
-    URB_CONTEXT *UrbContext,
-    u32 CacheAddress,
-    u32* DataBuffer,
-    u32 DataBufferLength,
-    int TrbCycleState
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	URB_CONTEXT *UrbContext,
+	u32 CacheAddress,
+	u32* DataBuffer,
+	u32 DataBufferLength,
+	int TrbCycleState
+	);
 
 #endif

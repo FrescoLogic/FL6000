@@ -27,8 +27,8 @@
 
 int
 ehub_xhci_doorbell_expand(
-    PDEVICE_CONTEXT DeviceContext,
-    ulong entries,
-    gfp_t flags
+	PDEVICE_CONTEXT DeviceContext,
+	ulong entries,
+	gfp_t flags
 );
 #endif

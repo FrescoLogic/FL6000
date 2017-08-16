@@ -26,31 +26,31 @@
 
 typedef enum _MEM_WR_TAG_ENUM_
 {
-    MEM_WR_TAG_EVT_MGR          = 0,
-    MEM_WR_TAG_IDMA             = 1,
-    MEM_WR_TAG_CNTX_MGR         = 2,
-    MEM_WR_TAG_DBG_PORT_EVT     = 3,
-    MEM_WR_TAG_DBG_PORT_IDMA    = 4,
-    MEM_WR_TAG_TRM_CACHE        = 5,
-    MEM_WR_TAG_MAX
+	MEM_WR_TAG_EVT_MGR          = 0,
+	MEM_WR_TAG_IDMA             = 1,
+	MEM_WR_TAG_CNTX_MGR         = 2,
+	MEM_WR_TAG_DBG_PORT_EVT     = 3,
+	MEM_WR_TAG_DBG_PORT_IDMA    = 4,
+	MEM_WR_TAG_TRM_CACHE        = 5,
+	MEM_WR_TAG_MAX
 } MEM_WR_TAG_ENUM, *PMEM_WR_TAG_ENUM;
 
 int
 NOTIFICATION_Wait(
-    PDEVICE_CONTEXT DeviceContext,
-    struct completion* NotificationEvent,
-    int ExpireInMs
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	struct completion* NotificationEvent,
+	int ExpireInMs
+	);
 
 void
 NOTIFICATION_Reset(
-    struct completion* NotificationEvent
-    );
+	struct completion* NotificationEvent
+	);
 
 void
 NOTIFICATION_Notify(
-    PDEVICE_CONTEXT DeviceContext,
-    struct completion* NotificationEvent
-    );
+	PDEVICE_CONTEXT DeviceContext,
+	struct completion* NotificationEvent
+	);
 
 #endif

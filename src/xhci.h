@@ -67,14 +67,14 @@
  * @run_regs_off:   RTSOFF - Runtime register space offset
  */
 struct xhci_cap_regs {
-    __le32  hc_capbase;
-    __le32  hcs_params1;
-    __le32  hcs_params2;
-    __le32  hcs_params3;
-    __le32  hcc_params;
-    __le32  db_off;
-    __le32  run_regs_off;
-    /* Reserved up to (CAPLENGTH - 0x1C) */
+	__le32  hc_capbase;
+	__le32  hcs_params1;
+	__le32  hcs_params2;
+	__le32  hcs_params3;
+	__le32  hcc_params;
+	__le32  db_off;
+	__le32  run_regs_off;
+	/* Reserved up to (CAPLENGTH - 0x1C) */
 };
 
 /* hc_capbase bitmasks */
@@ -171,26 +171,26 @@ struct xhci_cap_regs {
  *          devices.
  */
 struct xhci_op_regs {
-    __le32  command;
-    __le32  status;
-    __le32  page_size;
-    __le32  reserved1;
-    __le32  reserved2;
-    __le32  dev_notification;
-    __le64  cmd_ring;
-    /* rsvd: offset 0x20-2F */
-    __le32  reserved3[4];
-    __le64  dcbaa_ptr;
-    __le32  config_reg;
-    /* rsvd: offset 0x3C-3FF */
-    __le32  reserved4[241];
-    /* port 1 registers, which serve as a base address for other ports */
-    __le32  port_status_base;
-    __le32  port_power_base;
-    __le32  port_link_base;
-    __le32  reserved5;
-    /* registers for ports 2-255 */
-    __le32  reserved6[NUM_PORT_REGS*254];
+	__le32  command;
+	__le32  status;
+	__le32  page_size;
+	__le32  reserved1;
+	__le32  reserved2;
+	__le32  dev_notification;
+	__le64  cmd_ring;
+	/* rsvd: offset 0x20-2F */
+	__le32  reserved3[4];
+	__le64  dcbaa_ptr;
+	__le32  config_reg;
+	/* rsvd: offset 0x3C-3FF */
+	__le32  reserved4[241];
+	/* port 1 registers, which serve as a base address for other ports */
+	__le32  port_status_base;
+	__le32  port_power_base;
+	__le32  port_link_base;
+	__le32  reserved5;
+	/* registers for ports 2-255 */
+	__le32  reserved6[NUM_PORT_REGS*254];
 };
 
 /* USBCMD - USB command - command bitmasks */
@@ -437,12 +437,12 @@ struct xhci_op_regs {
  * updates the dequeue pointer.
  */
 struct xhci_intr_reg {
-    __le32  irq_pending;
-    __le32  irq_control;
-    __le32  erst_size;
-    __le32  rsvd;
-    __le64  erst_base;
-    __le64  erst_dequeue;
+	__le32  irq_pending;
+	__le32  irq_control;
+	__le32  erst_size;
+	__le32  rsvd;
+	__le64  erst_base;
+	__le64  erst_dequeue;
 };
 
 /* irq_pending bitmasks */
@@ -487,9 +487,9 @@ struct xhci_intr_reg {
  * or larger accesses"
  */
 struct xhci_run_regs {
-    __le32          microframe_index;
-    __le32          rsvd[7];
-    struct xhci_intr_reg    ir_set[128];
+	__le32          microframe_index;
+	__le32          rsvd[7];
+	struct xhci_intr_reg    ir_set[128];
 };
 
 /**
@@ -502,7 +502,7 @@ struct xhci_run_regs {
  * Section 5.6
  */
 struct xhci_doorbell_array {
-    __le32  doorbell[256];
+	__le32  doorbell[256];
 };
 
 #define DB_VALUE(ep, stream)    ((((ep) + 1) & 0xff) | ((stream) << 16))
@@ -517,9 +517,9 @@ struct xhci_doorbell_array {
  * @port_info:      Port offset, count, and protocol-defined information.
  */
 struct xhci_protocol_caps {
-    u32 revision;
-    u32 name_string;
-    u32 port_info;
+	u32 revision;
+	u32 name_string;
+	u32 port_info;
 };
 
 #define XHCI_EXT_PORT_MAJOR(x)  (((x) >> 24) & 0xff)
@@ -537,16 +537,16 @@ struct xhci_protocol_caps {
  * memory used for the context (bytes) and dma address of it (dma).
  */
 struct xhci_container_ctx {
-    unsigned type;
+	unsigned type;
 #define XHCI_CTX_TYPE_DEVICE  0x1
 #define XHCI_CTX_TYPE_INPUT   0x2
 
-    int size;
+	int size;
 
-    u8 *bytes;
-    dma_addr_t dma;
-    /* save the original dma address returned from dma_pool_alloc to use when freeing */
-    dma_addr_t orig_dma;
+	u8 *bytes;
+	dma_addr_t dma;
+	/* save the original dma address returned from dma_pool_alloc to use when freeing */
+	dma_addr_t orig_dma;
 };
 
 /**
@@ -561,12 +561,12 @@ struct xhci_container_ctx {
  * reserved at the end of the slot context for HC internal use.
  */
 struct xhci_slot_ctx {
-    __le32  dev_info;
-    __le32  dev_info2;
-    __le32  tt_info;
-    __le32  dev_state;
-    /* offset 0x10 to 0x1f reserved for HC internal use */
-    __le32  reserved[4];
+	__le32  dev_info;
+	__le32  dev_info2;
+	__le32  tt_info;
+	__le32  dev_state;
+	/* offset 0x10 to 0x1f reserved for HC internal use */
+	__le32  reserved[4];
 };
 
 /* dev_info bitmasks */
@@ -642,12 +642,12 @@ struct xhci_slot_ctx {
  * reserved at the end of the endpoint context for HC internal use.
  */
 struct xhci_ep_ctx {
-    __le32  ep_info;
-    __le32  ep_info2;
-    __le64  deq;
-    __le32  tx_info;
-    /* offset 0x14 - 0x1f reserved for HC internal use */
-    __le32  reserved[3];
+	__le32  ep_info;
+	__le32  ep_info2;
+	__le64  deq;
+	__le32  tx_info;
+	/* offset 0x14 - 0x1f reserved for HC internal use */
+	__le32  reserved[3];
 };
 
 /* ep_info bitmasks */
@@ -727,30 +727,30 @@ struct xhci_ep_ctx {
  * @add_context:    set the bit of the endpoint context you want to enable
  */
 struct xhci_input_control_ctx {
-    __le32  drop_flags;
-    __le32  add_flags;
-    __le32  rsvd2[6];
+	__le32  drop_flags;
+	__le32  add_flags;
+	__le32  rsvd2[6];
 };
 
 #define EP_IS_ADDED(ctrl_ctx, i) \
-    (le32_to_cpu(ctrl_ctx->add_flags) & (1 << (i + 1)))
+	(le32_to_cpu(ctrl_ctx->add_flags) & (1 << (i + 1)))
 #define EP_IS_DROPPED(ctrl_ctx, i)       \
-    (le32_to_cpu(ctrl_ctx->drop_flags) & (1 << (i + 1)))
+	(le32_to_cpu(ctrl_ctx->drop_flags) & (1 << (i + 1)))
 
 /* Represents everything that is needed to issue a command on the command ring.
  * It's useful to pre-allocate these for commands that cannot fail due to
  * out-of-memory errors, like freeing streams.
  */
 struct xhci_command {
-    /* Input context for changing device state */
-    struct xhci_container_ctx   *in_ctx;
-    u32             status;
-    /* If completion is null, no one is waiting on this command
-     * and the structure can be freed after the command completes.
-     */
-    struct completion       *completion;
-    union xhci_trb          *command_trb;
-    struct list_head        cmd_list;
+	/* Input context for changing device state */
+	struct xhci_container_ctx   *in_ctx;
+	u32             status;
+	/* If completion is null, no one is waiting on this command
+	 * and the structure can be freed after the command completes.
+	 */
+	struct completion       *completion;
+	union xhci_trb          *command_trb;
+	struct list_head        cmd_list;
 };
 
 /* drop context bitmasks */
@@ -759,10 +759,10 @@ struct xhci_command {
 #define ADD_EP(x)   (0x1 << x)
 
 struct xhci_stream_ctx {
-    /* 64-bit stream ring address, cycle state, and stream type */
-    __le64  stream_ring;
-    /* offset 0x14 - 0x1f reserved for HC internal use */
-    __le32  reserved[2];
+	/* 64-bit stream ring address, cycle state, and stream type */
+	__le64  stream_ring;
+	/* offset 0x14 - 0x1f reserved for HC internal use */
+	__le32  reserved[2];
 };
 
 /* Stream Context Types (section 6.4.1) - bits 3:1 of stream ctx deq ptr */
@@ -781,18 +781,18 @@ struct xhci_stream_ctx {
 
 /* Assume no secondary streams for now */
 struct xhci_stream_info {
-    struct xhci_ring        **stream_rings;
-    /* Number of streams, including stream 0 (which drivers can't use) */
-    unsigned int            num_streams;
-    /* The stream context array may be bigger than
-     * the number of streams the driver asked for
-     */
-    struct xhci_stream_ctx      *stream_ctx_array;
-    unsigned int            num_stream_ctxs;
-    dma_addr_t          ctx_array_dma;
-    /* For mapping physical TRB addresses to segments in stream rings */
-    struct radix_tree_root      trb_address_map;
-    struct xhci_command     *free_streams_command;
+	struct xhci_ring        **stream_rings;
+	/* Number of streams, including stream 0 (which drivers can't use) */
+	unsigned int            num_streams;
+	/* The stream context array may be bigger than
+	 * the number of streams the driver asked for
+	 */
+	struct xhci_stream_ctx      *stream_ctx_array;
+	unsigned int            num_stream_ctxs;
+	dma_addr_t          ctx_array_dma;
+	/* For mapping physical TRB addresses to segments in stream rings */
+	struct radix_tree_root      trb_address_map;
+	struct xhci_command     *free_streams_command;
 };
 
 #define SMALL_STREAM_ARRAY_SIZE     256
@@ -805,14 +805,14 @@ struct xhci_stream_info {
  * (DMI) also limits the total bandwidth (across all domains) that can be used.
  */
 struct xhci_bw_info {
-    /* ep_interval is zero-based */
-    unsigned int        ep_interval;
-    /* mult and num_packets are one-based */
-    unsigned int        mult;
-    unsigned int        num_packets;
-    unsigned int        max_packet_size;
-    unsigned int        max_esit_payload;
-    unsigned int        type;
+	/* ep_interval is zero-based */
+	unsigned int        ep_interval;
+	/* mult and num_packets are one-based */
+	unsigned int        mult;
+	unsigned int        num_packets;
+	unsigned int        max_packet_size;
+	unsigned int        max_esit_payload;
+	unsigned int        type;
 };
 
 /* "Block" sizes in bytes the hardware uses for different device speeds.
@@ -860,14 +860,14 @@ struct xhci_bw_info {
 #define SS_BW_RESERVED      10
 
 struct xhci_virt_ep {
-    struct xhci_ring        *ring;
-    /* Related to endpoints that are configured to use stream IDs only */
-    struct xhci_stream_info     *stream_info;
-    /* Temporary storage in case the configure endpoint command fails and we
-     * have to restore the device state to the previous state
-     */
-    struct xhci_ring        *new_ring;
-    unsigned int            ep_state;
+	struct xhci_ring        *ring;
+	/* Related to endpoints that are configured to use stream IDs only */
+	struct xhci_stream_info     *stream_info;
+	/* Temporary storage in case the configure endpoint command fails and we
+	 * have to restore the device state to the previous state
+	 */
+	struct xhci_ring        *new_ring;
+	unsigned int            ep_state;
 #define SET_DEQ_PENDING     (1 << 0)
 #define EP_HALTED       (1 << 1)    /* For stall handling */
 #define EP_HALT_PENDING     (1 << 2)    /* For URB cancellation */
@@ -876,86 +876,86 @@ struct xhci_virt_ep {
 #define EP_HAS_STREAMS      (1 << 4)
 /* Transitioning the endpoint to not using streams, don't enqueue URBs */
 #define EP_GETTING_NO_STREAMS   (1 << 5)
-    /* ----  Related to URB cancellation ---- */
-    struct list_head    cancelled_td_list;
-    struct xhci_td      *stopped_td;
-    unsigned int        stopped_stream;
-    /* Watchdog timer for stop endpoint command to cancel URBs */
-    struct timer_list   stop_cmd_timer;
-    int         stop_cmds_pending;
-    struct xhci_hcd     *xhci;
-    /* Dequeue pointer and dequeue segment for a submitted Set TR Dequeue
-     * command.  We'll need to update the ring's dequeue segment and dequeue
-     * pointer after the command completes.
-     */
-    struct xhci_segment *queued_deq_seg;
-    union xhci_trb      *queued_deq_ptr;
-    /*
-     * Sometimes the xHC can not process isochronous endpoint ring quickly
-     * enough, and it will miss some isoc tds on the ring and generate
-     * a Missed Service Error Event.
-     * Set skip flag when receive a Missed Service Error Event and
-     * process the missed tds on the endpoint ring.
-     */
-    bool            skip;
-    /* Bandwidth checking storage */
-    struct xhci_bw_info bw_info;
-    struct list_head    bw_endpoint_list;
+	/* ----  Related to URB cancellation ---- */
+	struct list_head    cancelled_td_list;
+	struct xhci_td      *stopped_td;
+	unsigned int        stopped_stream;
+	/* Watchdog timer for stop endpoint command to cancel URBs */
+	struct timer_list   stop_cmd_timer;
+	int         stop_cmds_pending;
+	struct xhci_hcd     *xhci;
+	/* Dequeue pointer and dequeue segment for a submitted Set TR Dequeue
+	 * command.  We'll need to update the ring's dequeue segment and dequeue
+	 * pointer after the command completes.
+	 */
+	struct xhci_segment *queued_deq_seg;
+	union xhci_trb      *queued_deq_ptr;
+	/*
+	 * Sometimes the xHC can not process isochronous endpoint ring quickly
+	 * enough, and it will miss some isoc tds on the ring and generate
+	 * a Missed Service Error Event.
+	 * Set skip flag when receive a Missed Service Error Event and
+	 * process the missed tds on the endpoint ring.
+	 */
+	bool            skip;
+	/* Bandwidth checking storage */
+	struct xhci_bw_info bw_info;
+	struct list_head    bw_endpoint_list;
 };
 
 enum xhci_overhead_type {
-    LS_OVERHEAD_TYPE = 0,
-    FS_OVERHEAD_TYPE,
-    HS_OVERHEAD_TYPE,
+	LS_OVERHEAD_TYPE = 0,
+	FS_OVERHEAD_TYPE,
+	HS_OVERHEAD_TYPE,
 };
 
 struct xhci_interval_bw {
-    unsigned int        num_packets;
-    /* Sorted by max packet size.
-     * Head of the list is the greatest max packet size.
-     */
-    struct list_head    endpoints;
-    /* How many endpoints of each speed are present. */
-    unsigned int        overhead[3];
+	unsigned int        num_packets;
+	/* Sorted by max packet size.
+	 * Head of the list is the greatest max packet size.
+	 */
+	struct list_head    endpoints;
+	/* How many endpoints of each speed are present. */
+	unsigned int        overhead[3];
 };
 
 #define XHCI_MAX_INTERVAL   16
 
 struct xhci_interval_bw_table {
-    unsigned int        interval0_esit_payload;
-    struct xhci_interval_bw interval_bw[XHCI_MAX_INTERVAL];
-    /* Includes reserved bandwidth for async endpoints */
-    unsigned int        bw_used;
-    unsigned int        ss_bw_in;
-    unsigned int        ss_bw_out;
+	unsigned int        interval0_esit_payload;
+	struct xhci_interval_bw interval_bw[XHCI_MAX_INTERVAL];
+	/* Includes reserved bandwidth for async endpoints */
+	unsigned int        bw_used;
+	unsigned int        ss_bw_in;
+	unsigned int        ss_bw_out;
 };
 
 
 struct xhci_virt_device {
-    struct usb_device       *udev;
-    /*
-     * Commands to the hardware are passed an "input context" that
-     * tells the hardware what to change in its data structures.
-     * The hardware will return changes in an "output context" that
-     * software must allocate for the hardware.  We need to keep
-     * track of input and output contexts separately because
-     * these commands might fail and we don't trust the hardware.
-     */
-    struct xhci_container_ctx       *out_ctx;
-    /* Used for addressing devices and configuration changes */
-    struct xhci_container_ctx       *in_ctx;
-    /* Rings saved to ensure old alt settings can be re-instated */
-    struct xhci_ring        **ring_cache;
-    int             num_rings_cached;
+	struct usb_device       *udev;
+	/*
+	 * Commands to the hardware are passed an "input context" that
+	 * tells the hardware what to change in its data structures.
+	 * The hardware will return changes in an "output context" that
+	 * software must allocate for the hardware.  We need to keep
+	 * track of input and output contexts separately because
+	 * these commands might fail and we don't trust the hardware.
+	 */
+	struct xhci_container_ctx       *out_ctx;
+	/* Used for addressing devices and configuration changes */
+	struct xhci_container_ctx       *in_ctx;
+	/* Rings saved to ensure old alt settings can be re-instated */
+	struct xhci_ring        **ring_cache;
+	int             num_rings_cached;
 #define XHCI_MAX_RINGS_CACHED   31
-    struct xhci_virt_ep     eps[31];
-    struct completion       cmd_completion;
-    u8              fake_port;
-    u8              real_port;
-    struct xhci_interval_bw_table   *bw_table;
-    struct xhci_tt_bw_info      *tt_info;
-    /* The current max exit latency for the enabled USB3 link states. */
-    u16             current_mel;
+	struct xhci_virt_ep     eps[31];
+	struct completion       cmd_completion;
+	u8              fake_port;
+	u8              real_port;
+	struct xhci_interval_bw_table   *bw_table;
+	struct xhci_tt_bw_info      *tt_info;
+	/* The current max exit latency for the enabled USB3 link states. */
+	u16             current_mel;
 };
 
 /*
@@ -967,17 +967,17 @@ struct xhci_virt_device {
  * endpoints on the devices under that TT will appear in the TT structure.
  */
 struct xhci_root_port_bw_info {
-    struct list_head        tts;
-    unsigned int            num_active_tts;
-    struct xhci_interval_bw_table   bw_table;
+	struct list_head        tts;
+	unsigned int            num_active_tts;
+	struct xhci_interval_bw_table   bw_table;
 };
 
 struct xhci_tt_bw_info {
-    struct list_head        tt_list;
-    int             slot_id;
-    int             ttport;
-    struct xhci_interval_bw_table   bw_table;
-    int             active_eps;
+	struct list_head        tt_list;
+	int             slot_id;
+	int             ttport;
+	struct xhci_interval_bw_table   bw_table;
+	int             active_eps;
 };
 
 
@@ -986,11 +986,11 @@ struct xhci_tt_bw_info {
  * @dev_context_ptr array of 64-bit DMA addresses for device contexts
  */
 struct xhci_device_context_array {
-    /* 64-bit device addresses; we only write 32-bit addresses */
-    __le64          dev_context_ptrs[MAX_HC_SLOTS];
-    /* private xHCD pointers */
-    dma_addr_t  dma;
-    dma_addr_t  orig_dma;
+	/* 64-bit device addresses; we only write 32-bit addresses */
+	__le64          dev_context_ptrs[MAX_HC_SLOTS];
+	/* private xHCD pointers */
+	dma_addr_t  dma;
+	dma_addr_t  orig_dma;
 };
 /* TODO: write function to set the 64-bit device DMA address */
 /*
@@ -1000,11 +1000,11 @@ struct xhci_device_context_array {
 
 
 struct xhci_transfer_event {
-    /* 64-bit buffer address, or immediate data */
-    __le64  buffer;
-    __le32  transfer_len;
-    /* This field is interpreted differently based on the type of TRB */
-    __le32  flags;
+	/* 64-bit buffer address, or immediate data */
+	__le64  buffer;
+	__le32  transfer_len;
+	/* This field is interpreted differently based on the type of TRB */
+	__le32  flags;
 };
 
 /* Transfer event TRB length bit mask */
@@ -1089,10 +1089,10 @@ struct xhci_transfer_event {
 #define COMP_SPLIT_ERR  36
 
 struct xhci_link_trb {
-    /* 64-bit segment pointer*/
-    __le64 segment_ptr;
-    __le32 intr_target;
-    __le32 control;
+	/* 64-bit segment pointer*/
+	__le64 segment_ptr;
+	__le32 intr_target;
+	__le32 control;
 };
 
 /* control bitfields */
@@ -1100,10 +1100,10 @@ struct xhci_link_trb {
 
 /* Command completion event TRB */
 struct xhci_event_cmd {
-    /* Pointer to command TRB, or the value passed by the event data trb */
-    __le64 cmd_trb;
-    __le32 status;
-    __le32 flags;
+	/* Pointer to command TRB, or the value passed by the event data trb */
+	__le64 cmd_trb;
+	__le32 status;
+	__le32 flags;
 };
 
 /* flags bitmasks */
@@ -1111,8 +1111,8 @@ struct xhci_event_cmd {
 /* Address device - disable SetAddress */
 #define TRB_BSR     (1<<9)
 enum xhci_setup_dev {
-    SETUP_CONTEXT_ONLY,
-    SETUP_CONTEXT_ADDRESS,
+	SETUP_CONTEXT_ONLY,
+	SETUP_CONTEXT_ADDRESS,
 };
 
 /* bits 16:23 are the virtual function ID */
@@ -1178,14 +1178,14 @@ enum xhci_setup_dev {
 #define TRB_SIA         (1<<31)
 
 struct xhci_generic_trb {
-    __le32 field[4];
+	__le32 field[4];
 };
 
 union xhci_trb {
-    struct xhci_link_trb        link;
-    struct xhci_transfer_event  trans_event;
-    struct xhci_event_cmd       event_cmd;
-    struct xhci_generic_trb     generic;
+	struct xhci_link_trb        link;
+	struct xhci_transfer_event  trans_event;
+	struct xhci_event_cmd       event_cmd;
+	struct xhci_generic_trb     generic;
 };
 
 /* TRB bit mask */
@@ -1267,9 +1267,9 @@ union xhci_trb {
 #define TRB_TYPE_LINK(x)    (((x) & TRB_TYPE_BITMASK) == TRB_TYPE(TRB_LINK))
 /* Above, but for __le32 types -- can avoid work by swapping constants: */
 #define TRB_TYPE_LINK_LE32(x)   (((x) & cpu_to_le32(TRB_TYPE_BITMASK)) == \
-                 cpu_to_le32(TRB_TYPE(TRB_LINK)))
+				 cpu_to_le32(TRB_TYPE(TRB_LINK)))
 #define TRB_TYPE_NOOP_LE32(x)   (((x) & cpu_to_le32(TRB_TYPE_BITMASK)) == \
-                 cpu_to_le32(TRB_TYPE(TRB_TR_NOOP)))
+				 cpu_to_le32(TRB_TYPE(TRB_TR_NOOP)))
 
 #define NEC_FW_MINOR(p)     (((p) >> 0) & 0xff)
 #define NEC_FW_MAJOR(p)     (((p) >> 8) & 0xff)
@@ -1291,105 +1291,105 @@ union xhci_trb {
 #ifdef USE_XHCI_EHUB_SPIN_LOCK
 
 #define xhci_spin_lock_init( xhci )                     \
-    do {                                                \
-        spin_lock_init( &xhci->lock );                  \
-    } while (0);
+	do {                                                \
+		spin_lock_init( &xhci->lock );                  \
+	} while (0);
 
 #define ehub_xhci_spin_lock_irqsave( xhci, flags )      \
-    do {                                                \
-        spin_lock_irqsave( &xhci->lock, flags );        \
-    } while (0);
+	do {                                                \
+		spin_lock_irqsave( &xhci->lock, flags );        \
+	} while (0);
 
 #define ehub_xhci_spin_unlock_irqrestore( xhci, flags ) \
-    do {                                                \
-        spin_unlock_irqrestore( &xhci->lock, flags );   \
-    } while (0);
+	do {                                                \
+		spin_unlock_irqrestore( &xhci->lock, flags );   \
+	} while (0);
 
 #define xhci_spin_lock_irq( xhci )                      \
-    do {                                                \
-        spin_lock_irq( &xhci->lock );                   \
-    } while (0);
+	do {                                                \
+		spin_lock_irq( &xhci->lock );                   \
+	} while (0);
 
 #define xhci_spin_unlock_irq( xhci )                    \
-    do {                                                \
-        spin_unlock_irq( &xhci->lock );                 \
-    } while (0);
+	do {                                                \
+		spin_unlock_irq( &xhci->lock );                 \
+	} while (0);
 
 #else /* ! USE_XHCI_EHUB_SPIN_LOCK */
 
 #define xhci_spin_lock_init( xhci )                     \
-    do {                                                \
-        spin_lock_init( &xhci->lock );                  \
-    } while (0);
+	do {                                                \
+		spin_lock_init( &xhci->lock );                  \
+	} while (0);
 
 #define ehub_xhci_spin_lock_init( xhci )                \
-    do {                                                \
-        sema_init( &xhci->reg_lock, 1 );                \
-    } while (0);
+	do {                                                \
+		sema_init( &xhci->reg_lock, 1 );                \
+	} while (0);
 
 #define ehub_xhci_spin_lock_irqsave( xhci, flags )      \
-    do {                                                \
-        spin_lock_irqsave( &xhci->lock, flags );        \
-    } while (0);
+	do {                                                \
+		spin_lock_irqsave( &xhci->lock, flags );        \
+	} while (0);
 
 #define ehub_xhci_spin_unlock_irqrestore( xhci, flags ) \
-    do {                                                \
-        spin_unlock_irqrestore( &xhci->lock, flags );   \
-    } while (0);
+	do {                                                \
+		spin_unlock_irqrestore( &xhci->lock, flags );   \
+	} while (0);
 
 #define xhci_spin_lock_irq( xhci )                      \
-    do {                                                \
-        spin_lock_irq( &xhci->lock );                   \
-    } while (0);
+	do {                                                \
+		spin_lock_irq( &xhci->lock );                   \
+	} while (0);
 
 #define xhci_spin_unlock_irq( xhci )                    \
-    do {                                                \
-        spin_unlock_irq( &xhci->lock );                 \
-    } while (0);
+	do {                                                \
+		spin_unlock_irq( &xhci->lock );                 \
+	} while (0);
 
 #define ehub_xhci_reg_lock_irqsave( xhci, flags )       \
-    do {                                                \
-        xhci_reg_lock( xhci );                          \
-        ( ( void )( flags ) );                          \
-    } while (0);
+	do {                                                \
+		xhci_reg_lock( xhci );                          \
+		( ( void )( flags ) );                          \
+	} while (0);
 
 #define ehub_xhci_reg_unlock_irqrestore( xhci, flags )  \
-    do {                                                \
-        xhci_reg_unlock( xhci );                        \
-        ( ( void )( flags ) );                          \
-    } while (0);
+	do {                                                \
+		xhci_reg_unlock( xhci );                        \
+		( ( void )( flags ) );                          \
+	} while (0);
 
 #define xhci_reg_lock_irq( xhci )                       \
-    do {                                                \
-        xhci_reg_lock( xhci );                          \
-    } while (0);
+	do {                                                \
+		xhci_reg_lock( xhci );                          \
+	} while (0);
 
 #define xhci_reg_unlock_irq( xhci )                     \
-    do {                                                \
-        xhci_reg_unlock( xhci );                        \
-    } while (0);
+	do {                                                \
+		xhci_reg_unlock( xhci );                        \
+	} while (0);
 #endif // !USE_XHCI_EHUB_SPIN_LOCK
 
 struct xhci_segment {
-    union xhci_trb      *trbs;
-    /* private to HCD */
-    struct xhci_segment *next;
-    dma_addr_t      dma;
-    /* save the original dma address returned from dma_pool_alloc to use when freeing */
-    dma_addr_t      orig_dma;
-    PEHUB_CACHE_BLOCK EhubCacheBlock;
+	union xhci_trb      *trbs;
+	/* private to HCD */
+	struct xhci_segment *next;
+	dma_addr_t      dma;
+	/* save the original dma address returned from dma_pool_alloc to use when freeing */
+	dma_addr_t      orig_dma;
+	PEHUB_CACHE_BLOCK EhubCacheBlock;
 };
 
 struct xhci_td {
-    struct list_head    td_list;
-    struct list_head    cancelled_td_list;
-    struct urb      *urb;
-    struct xhci_segment *start_seg;
-    struct xhci_segment *end_seg;
-    union xhci_trb      *first_trb;
-    union xhci_trb      *last_trb;
-    /* actual_length of the URB has already been set */
-    bool            urb_length_set;
+	struct list_head    td_list;
+	struct list_head    cancelled_td_list;
+	struct urb      *urb;
+	struct xhci_segment *start_seg;
+	struct xhci_segment *end_seg;
+	union xhci_trb      *first_trb;
+	union xhci_trb      *last_trb;
+	/* actual_length of the URB has already been set */
+	bool            urb_length_set;
 };
 
 /* xHCI command default timeout value */
@@ -1397,82 +1397,82 @@ struct xhci_td {
 
 /* command descriptor */
 struct xhci_cd {
-    struct xhci_command *command;
-    union xhci_trb      *cmd_trb;
+	struct xhci_command *command;
+	union xhci_trb      *cmd_trb;
 };
 
 struct xhci_dequeue_state {
-    struct xhci_segment *new_deq_seg;
-    union xhci_trb *new_deq_ptr;
-    int new_cycle_state;
+	struct xhci_segment *new_deq_seg;
+	union xhci_trb *new_deq_ptr;
+	int new_cycle_state;
 };
 
 enum xhci_ring_type {
-    TYPE_CTRL = 0,
-    TYPE_ISOC,
-    TYPE_BULK,
-    TYPE_INTR,
-    TYPE_STREAM,
-    TYPE_COMMAND,
-    TYPE_EVENT,
+	TYPE_CTRL = 0,
+	TYPE_ISOC,
+	TYPE_BULK,
+	TYPE_INTR,
+	TYPE_STREAM,
+	TYPE_COMMAND,
+	TYPE_EVENT,
 };
 
 struct xhci_ring {
-    struct xhci_segment *first_seg;
-    struct xhci_segment *last_seg;
-    union  xhci_trb     *enqueue;
-    struct xhci_segment *enq_seg;
-    union  xhci_trb     *cache_enqueue;
-    struct xhci_segment *cache_enq_seg;
-    unsigned int        enq_updates;
-    union  xhci_trb     *dequeue;
-    struct xhci_segment *deq_seg;
-    unsigned int        deq_updates;
-    struct list_head    td_list;
-    /*
-     * Write the cycle state into the TRB cycle field to give ownership of
-     * the TRB to the host controller (if we are the producer), or to check
-     * if we own the TRB (if we are the consumer).  See section 4.9.1.
-     */
-    u32         cycle_state;
-    unsigned int        stream_id;
-    unsigned int        num_segs;
-    unsigned int        num_trbs_free;
-    unsigned int        num_trbs_free_temp;
-    enum xhci_ring_type type;
-    bool            last_td_was_short;
-    struct radix_tree_root  *trb_address_map;
+	struct xhci_segment *first_seg;
+	struct xhci_segment *last_seg;
+	union  xhci_trb     *enqueue;
+	struct xhci_segment *enq_seg;
+	union  xhci_trb     *cache_enqueue;
+	struct xhci_segment *cache_enq_seg;
+	unsigned int        enq_updates;
+	union  xhci_trb     *dequeue;
+	struct xhci_segment *deq_seg;
+	unsigned int        deq_updates;
+	struct list_head    td_list;
+	/*
+	 * Write the cycle state into the TRB cycle field to give ownership of
+	 * the TRB to the host controller (if we are the producer), or to check
+	 * if we own the TRB (if we are the consumer).  See section 4.9.1.
+	 */
+	u32         cycle_state;
+	unsigned int        stream_id;
+	unsigned int        num_segs;
+	unsigned int        num_trbs_free;
+	unsigned int        num_trbs_free_temp;
+	enum xhci_ring_type type;
+	bool            last_td_was_short;
+	struct radix_tree_root  *trb_address_map;
 };
 
 struct xhci_erst_entry {
-    /* 64-bit event ring segment address */
-    __le64  seg_addr;
-    __le32  seg_size;
-    /* Set to zero */
-    __le32  rsvd;
+	/* 64-bit event ring segment address */
+	__le64  seg_addr;
+	__le32  seg_size;
+	/* Set to zero */
+	__le32  rsvd;
 };
 
 struct xhci_erst {
-    struct xhci_erst_entry  *entries;
-    unsigned int        num_entries;
-    /* xhci->event_ring keeps track of segment dma addresses */
-    dma_addr_t      erst_dma_addr;
-    dma_addr_t      erst_dma_addr_orig;
-    /* Num entries the ERST can contain */
-    unsigned int        erst_size;
+	struct xhci_erst_entry  *entries;
+	unsigned int        num_entries;
+	/* xhci->event_ring keeps track of segment dma addresses */
+	dma_addr_t      erst_dma_addr;
+	dma_addr_t      erst_dma_addr_orig;
+	/* Num entries the ERST can contain */
+	unsigned int        erst_size;
 };
 
 struct xhci_scratchpad {
-    u64 *sp_array;
-    dma_addr_t sp_dma;
-    void **sp_buffers;
-    dma_addr_t *sp_dma_buffers;
+	u64 *sp_array;
+	dma_addr_t sp_dma;
+	void **sp_buffers;
+	dma_addr_t *sp_dma_buffers;
 };
 
 struct urb_priv {
-    int length;
-    int td_cnt;
-    struct  xhci_td *td[0];
+	int length;
+	int td_cnt;
+	struct  xhci_td *td[0];
 };
 
 /*
@@ -1492,38 +1492,38 @@ struct urb_priv {
 /* XXX: Make these module parameters */
 
 struct s3_save {
-    u32 command;
-    u32 dev_nt;
-    u64 dcbaa_ptr;
-    u32 config_reg;
-    u32 irq_pending;
-    u32 irq_control;
-    u32 erst_size;
-    u64 erst_base;
-    u64 erst_dequeue;
+	u32 command;
+	u32 dev_nt;
+	u64 dcbaa_ptr;
+	u32 config_reg;
+	u32 irq_pending;
+	u32 irq_control;
+	u32 erst_size;
+	u64 erst_base;
+	u64 erst_dequeue;
 };
 
 /* Use for lpm */
 struct dev_info {
-    u32         dev_id;
-    struct  list_head   list;
+	u32         dev_id;
+	struct  list_head   list;
 };
 
 struct xhci_bus_state {
-    unsigned long       bus_suspended;
-    unsigned long       next_statechange;
+	unsigned long       bus_suspended;
+	unsigned long       next_statechange;
 
-    /* Port suspend arrays are indexed by the portnum of the fake roothub */
-    /* ports suspend status arrays - max 31 ports for USB2, 15 for USB3 */
-    u32         port_c_suspend;
-    u32         suspended_ports;
-    u32         port_remote_wakeup;
-    unsigned long       resume_done[USB_MAXCHILDREN];
-    /* which ports have started to resume */
-    unsigned long       resuming_ports;
-    /* Which ports are waiting on RExit to U0 transition. */
-    unsigned long       rexit_ports;
-    struct completion   rexit_done[USB_MAXCHILDREN];
+	/* Port suspend arrays are indexed by the portnum of the fake roothub */
+	/* ports suspend status arrays - max 31 ports for USB2, 15 for USB3 */
+	u32         port_c_suspend;
+	u32         suspended_ports;
+	u32         port_remote_wakeup;
+	unsigned long       resume_done[USB_MAXCHILDREN];
+	/* which ports have started to resume */
+	unsigned long       resuming_ports;
+	/* Which ports are waiting on RExit to U0 transition. */
+	unsigned long       rexit_ports;
+	struct completion   rexit_done[USB_MAXCHILDREN];
 };
 
 
@@ -1535,134 +1535,134 @@ struct xhci_bus_state {
 
 static inline unsigned int hcd_index(struct usb_hcd *hcd)
 {
-    if (hcd->speed == HCD_USB3)
-        return 0;
-    else
-        return 1;
+	if (hcd->speed == HCD_USB3)
+		return 0;
+	else
+		return 1;
 }
 
 struct cache_write_context {
-    struct list_head list;
-    struct work_struct work;
-    PDEVICE_CONTEXT DeviceContext;
-    URB_CONTEXT *UrbContext;
-    u32 CacheAddress;
-    u32* DataBuffer;
-    u32 DataBufferLength;
-    int TrbCycleState;
-    bool ring_doorbell;
-    unsigned int slot_id;
-    unsigned int ep_index;
-    unsigned int stream_id;
+	struct list_head list;
+	struct work_struct work;
+	PDEVICE_CONTEXT DeviceContext;
+	URB_CONTEXT *UrbContext;
+	u32 CacheAddress;
+	u32* DataBuffer;
+	u32 DataBufferLength;
+	int TrbCycleState;
+	bool ring_doorbell;
+	unsigned int slot_id;
+	unsigned int ep_index;
+	unsigned int stream_id;
 };
 
 /* There is one xhci_hcd structure per controller */
 struct xhci_hcd {
-    struct usb_hcd *main_hcd;
-    struct usb_hcd *shared_hcd;
-    /* glue to PCI and HCD framework */
-    struct xhci_cap_regs __iomem *cap_regs;
-    struct xhci_op_regs __iomem *op_regs;
-    struct xhci_run_regs __iomem *run_regs;
-    struct xhci_doorbell_array __iomem *dba;
-    /* Our HCD's current interrupter register set */
-    struct  xhci_intr_reg __iomem *ir_set;
+	struct usb_hcd *main_hcd;
+	struct usb_hcd *shared_hcd;
+	/* glue to PCI and HCD framework */
+	struct xhci_cap_regs __iomem *cap_regs;
+	struct xhci_op_regs __iomem *op_regs;
+	struct xhci_run_regs __iomem *run_regs;
+	struct xhci_doorbell_array __iomem *dba;
+	/* Our HCD's current interrupter register set */
+	struct  xhci_intr_reg __iomem *ir_set;
 
-    /* Cached register copies of read-only HC data */
-    __u32       hc_capbase;
-    __u32       hcs_params1;
-    __u32       hcs_params2;
-    __u32       hcs_params3;
-    __u32       hcc_params;
-    __u32       db_off;
-    __u32       run_regs_off;
-    __u32       usb2_port_removable[MAX_HC_PORTS];
+	/* Cached register copies of read-only HC data */
+	__u32       hc_capbase;
+	__u32       hcs_params1;
+	__u32       hcs_params2;
+	__u32       hcs_params3;
+	__u32       hcc_params;
+	__u32       db_off;
+	__u32       run_regs_off;
+	__u32       usb2_port_removable[MAX_HC_PORTS];
 
-    spinlock_t  lock;
+	spinlock_t  lock;
 
-    /* more relaxed lock for register access since a usb transfer is needed */
-    struct semaphore reg_lock;
-    bool reg_lock_acquired;
+	/* more relaxed lock for register access since a usb transfer is needed */
+	struct semaphore reg_lock;
+	bool reg_lock_acquired;
 
-    /* packed release number */
-    u8      sbrn;
-    u16     hci_version;
-    u8      max_slots;
-    u8      max_interrupters;
-    u8      max_ports;
-    u8      isoc_threshold;
-    int     event_ring_max;
-    int     addr_64;
-    /* 4KB min, 128MB max */
-    int     page_size;
-    /* Valid values are 12 to 20, inclusive */
-    int     page_shift;
-    /* msi-x vectors */
-    int     msix_count;
-    struct msix_entry   *msix_entries;
-    /* optional clock */
-    struct clk      *clk;
-    /* data structures */
-    struct xhci_device_context_array *dcbaa;
-    struct xhci_ring    *cmd_ring;
-    unsigned int            cmd_ring_state;
+	/* packed release number */
+	u8      sbrn;
+	u16     hci_version;
+	u8      max_slots;
+	u8      max_interrupters;
+	u8      max_ports;
+	u8      isoc_threshold;
+	int     event_ring_max;
+	int     addr_64;
+	/* 4KB min, 128MB max */
+	int     page_size;
+	/* Valid values are 12 to 20, inclusive */
+	int     page_shift;
+	/* msi-x vectors */
+	int     msix_count;
+	struct msix_entry   *msix_entries;
+	/* optional clock */
+	struct clk      *clk;
+	/* data structures */
+	struct xhci_device_context_array *dcbaa;
+	struct xhci_ring    *cmd_ring;
+	unsigned int            cmd_ring_state;
 #define CMD_RING_STATE_RUNNING         (1 << 0)
 #define CMD_RING_STATE_ABORTED         (1 << 1)
 #define CMD_RING_STATE_STOPPED         (1 << 2)
-    struct list_head        cmd_list;
-    unsigned int        cmd_ring_reserved_trbs;
-    struct timer_list   cmd_timer;
-    struct xhci_command *current_cmd;
-    struct xhci_ring    *event_ring;
-    struct xhci_erst    erst;
-    /* Scratchpad */
-    struct xhci_scratchpad  *scratchpad;
-    /* Store LPM test failed devices' information */
-    struct list_head    lpm_failed_devs;
+	struct list_head        cmd_list;
+	unsigned int        cmd_ring_reserved_trbs;
+	struct timer_list   cmd_timer;
+	struct xhci_command *current_cmd;
+	struct xhci_ring    *event_ring;
+	struct xhci_erst    erst;
+	/* Scratchpad */
+	struct xhci_scratchpad  *scratchpad;
+	/* Store LPM test failed devices' information */
+	struct list_head    lpm_failed_devs;
 
-    /* slot enabling and address device helpers */
-    /* these are not thread safe so use mutex */
-    struct mutex mutex;
-    struct completion   addr_dev;
-    int slot_id;
-    /* For USB 3.0 LPM enable/disable. */
-    struct xhci_command     *lpm_command;
-    /* Internal mirror of the HW's dcbaa */
-    struct xhci_virt_device *devs[MAX_HC_SLOTS];
-    /* For keeping track of bandwidth domains per roothub. */
-    struct xhci_root_port_bw_info   *rh_bw;
+	/* slot enabling and address device helpers */
+	/* these are not thread safe so use mutex */
+	struct mutex mutex;
+	struct completion   addr_dev;
+	int slot_id;
+	/* For USB 3.0 LPM enable/disable. */
+	struct xhci_command     *lpm_command;
+	/* Internal mirror of the HW's dcbaa */
+	struct xhci_virt_device *devs[MAX_HC_SLOTS];
+	/* For keeping track of bandwidth domains per roothub. */
+	struct xhci_root_port_bw_info   *rh_bw;
 
-    /* DMA pools */
-    struct dma_pool *device_pool;
-    struct dma_pool *segment_pool;
-    /* pool of page sized entires for DCBAA and Scratchpad */
-    struct dma_pool *page_pool;
-    struct dma_pool *small_streams_pool;
-    struct dma_pool *medium_streams_pool;
+	/* DMA pools */
+	struct dma_pool *device_pool;
+	struct dma_pool *segment_pool;
+	/* pool of page sized entires for DCBAA and Scratchpad */
+	struct dma_pool *page_pool;
+	struct dma_pool *small_streams_pool;
+	struct dma_pool *medium_streams_pool;
 
-    PEHUB_CACHE_BLOCK TempEhubCacheBlockArray[ EHUB_CACHE_NUMBER_OF_BLOCKS ];
-    int TempEhubCacheBlockCount;
+	PEHUB_CACHE_BLOCK TempEhubCacheBlockArray[ EHUB_CACHE_NUMBER_OF_BLOCKS ];
+	int TempEhubCacheBlockCount;
 
-    // Cache pool.
-    //
-    struct list_head cache_list_free;
-    struct list_head cache_list_used;
-    spinlock_t cache_list_lock;
-    int number_of_caches_free;
-    int number_of_caches_used;
+	// Cache pool.
+	//
+	struct list_head cache_list_free;
+	struct list_head cache_list_used;
+	spinlock_t cache_list_lock;
+	int number_of_caches_free;
+	int number_of_caches_used;
 
-    struct workqueue_struct *ehub_cache_wq;
-    struct cache_write_context ehub_cache_work;
-    struct list_head cache_queue_free;
-    struct list_head cache_queue_used;
+	struct workqueue_struct *ehub_cache_wq;
+	struct cache_write_context ehub_cache_work;
+	struct list_head cache_queue_free;
+	struct list_head cache_queue_used;
 
-    /* Host controller watchdog timer structures */
-    unsigned int        xhc_state;
+	/* Host controller watchdog timer structures */
+	unsigned int        xhc_state;
 
-    u32         command;
-    struct s3_save      s3;
+	u32         command;
+	struct s3_save      s3;
 
-    PDEVICE_CONTEXT DeviceContext;
+	PDEVICE_CONTEXT DeviceContext;
 
 /* Host controller is dying - not responding to commands. "I'm not dead yet!"
  *
@@ -1678,9 +1678,9 @@ struct xhci_hcd {
  */
 #define XHCI_STATE_DYING    (1 << 0)
 #define XHCI_STATE_HALTED   (1 << 1)
-    /* Statistics */
-    int         error_bitmask;
-    unsigned int        quirks;
+	/* Statistics */
+	int         error_bitmask;
+	unsigned int        quirks;
 #define XHCI_LINK_TRB_QUIRK (1 << 0)
 #define XHCI_RESET_EP_QUIRK (1 << 1)
 #define XHCI_NEC_HOST       (1 << 2)
@@ -1712,29 +1712,29 @@ struct xhci_hcd {
 /* For controllers with a broken beyond repair streams implementation */
 #define XHCI_BROKEN_STREAMS (1 << 19)
 #define XHCI_PME_STUCK_QUIRK    (1 << 20)
-    unsigned int        num_active_eps;
-    unsigned int        limit_active_eps;
-    unsigned int        num_active_isoc_eps;
-    /* There are two roothubs to keep track of bus suspend info for */
-    struct xhci_bus_state   bus_state[2];
-    /* Is each xHCI roothub port a USB 3.0, USB 2.0, or USB 1.1 port? */
-    u8          *port_array;
-    /* Array of pointers to USB 3.0 PORTSC registers */
-    __le32 __iomem      **usb3_ports;
-    unsigned int        num_usb3_ports;
-    /* Array of pointers to USB 2.0 PORTSC registers */
-    __le32 __iomem      **usb2_ports;
-    unsigned int        num_usb2_ports;
-    /* support xHCI 0.96 spec USB2 software LPM */
-    unsigned        sw_lpm_support:1;
-    /* support xHCI 1.0 spec USB2 hardware LPM */
-    unsigned        hw_lpm_support:1;
-    /* cached usb2 extened protocol capabilites */
-    u32                     *ext_caps;
-    unsigned int            num_ext_caps;
-    /* Compliance Mode Recovery Data */
-    struct timer_list   comp_mode_recovery_timer;
-    u32         port_status_u0;
+	unsigned int        num_active_eps;
+	unsigned int        limit_active_eps;
+	unsigned int        num_active_isoc_eps;
+	/* There are two roothubs to keep track of bus suspend info for */
+	struct xhci_bus_state   bus_state[2];
+	/* Is each xHCI roothub port a USB 3.0, USB 2.0, or USB 1.1 port? */
+	u8          *port_array;
+	/* Array of pointers to USB 3.0 PORTSC registers */
+	__le32 __iomem      **usb3_ports;
+	unsigned int        num_usb3_ports;
+	/* Array of pointers to USB 2.0 PORTSC registers */
+	__le32 __iomem      **usb2_ports;
+	unsigned int        num_usb2_ports;
+	/* support xHCI 0.96 spec USB2 software LPM */
+	unsigned        sw_lpm_support:1;
+	/* support xHCI 1.0 spec USB2 hardware LPM */
+	unsigned        hw_lpm_support:1;
+	/* cached usb2 extened protocol capabilites */
+	u32                     *ext_caps;
+	unsigned int            num_ext_caps;
+	/* Compliance Mode Recovery Data */
+	struct timer_list   comp_mode_recovery_timer;
+	u32         port_status_u0;
 /* Compliance Mode Timer Triggered every 2 seconds */
 #define COMP_MODE_RCVRY_MSECS 2000
 };
@@ -1742,48 +1742,48 @@ struct xhci_hcd {
 /* convert between an HCD pointer and the corresponding EHCI_HCD */
 static inline struct xhci_hcd *hcd_to_xhci(struct usb_hcd *hcd)
 {
-    return *((struct xhci_hcd **) (hcd->hcd_priv));
+	return *((struct xhci_hcd **) (hcd->hcd_priv));
 }
 
 static inline struct usb_hcd *xhci_to_hcd(struct xhci_hcd *xhci)
 {
-    return xhci->main_hcd;
+	return xhci->main_hcd;
 }
 
 static inline struct xhci_hcd *dev_ctx_to_xhci ( PDEVICE_CONTEXT DeviceContext )
 {
-    return ( struct xhci_hcd * )DeviceContext->UsbContext.xhci_hcd;
+	return ( struct xhci_hcd * )DeviceContext->UsbContext.xhci_hcd;
 }
 
 static inline struct device *dev_ctx_to_dev ( PDEVICE_CONTEXT DeviceContext )
 {
-    return &DeviceContext->UsbContext.UsbDevice->dev;
+	return &DeviceContext->UsbContext.UsbDevice->dev;
 }
 
 static inline int xhci_is_dying_safe(PDEVICE_CONTEXT DeviceContext)
 {
-    struct xhci_hcd *xhci;
-    if (DeviceContext && DeviceContext->UsbContext.xhci_hcd) {
-        xhci = dev_ctx_to_xhci(DeviceContext);
-        if (! (xhci->xhc_state & XHCI_STATE_DYING)) /* XHCI_STATE_DYING */
-            return false;
-    }
+	struct xhci_hcd *xhci;
+	if (DeviceContext && DeviceContext->UsbContext.xhci_hcd) {
+		xhci = dev_ctx_to_xhci(DeviceContext);
+		if (! (xhci->xhc_state & XHCI_STATE_DYING)) /* XHCI_STATE_DYING */
+			return false;
+	}
 
-    return true;
+	return true;
 }
 
 #ifdef EHUB_DEBUG_ENABLE
 
 #define xhci_dbg(xhci, fmt, args...) \
-    dev_dbg(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_dbg(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_err(xhci, fmt, args...) \
-    dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_warn(xhci, fmt, args...) \
-    dev_warn(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_warn(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_warn_ratelimited(xhci, fmt, args...) \
-    dev_warn_ratelimited(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_warn_ratelimited(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_info(xhci, fmt, args...) \
-    dev_info(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_info(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 
 #else // !EHUB_DEBUG_ENABLE
 
@@ -1794,76 +1794,76 @@ static inline int xhci_is_dying_safe(PDEVICE_CONTEXT DeviceContext)
 #endif // !CONFIG_USB_XHCI_HCD_DEBUGGING
 
 #define xhci_dbg(xhci, fmt, args...) \
-    do { if (XHCI_DEBUG) dev_dbg(xhci_to_hcd(xhci)->self.controller , fmt , ## args); } while (0)
+	do { if (XHCI_DEBUG) dev_dbg(xhci_to_hcd(xhci)->self.controller , fmt , ## args); } while (0)
 #define xhci_info(xhci, fmt, args...) \
-    do { if (XHCI_DEBUG) dev_info(xhci_to_hcd(xhci)->self.controller , fmt , ## args); } while (0)
+	do { if (XHCI_DEBUG) dev_info(xhci_to_hcd(xhci)->self.controller , fmt , ## args); } while (0)
 #define xhci_err(xhci, fmt, args...) \
-    dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_err(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_warn(xhci, fmt, args...) \
-    dev_warn(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_warn(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 #define xhci_warn_ratelimited(xhci, fmt, args...) \
-    dev_warn_ratelimited(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
+	dev_warn_ratelimited(xhci_to_hcd(xhci)->self.controller , fmt , ## args)
 
 #endif // !EHUB_DEBUG_ENABLE
 
 unsigned int
 ehub_xhci_readl(
-    const struct xhci_hcd *xhci,
-    __le32 *regs
-    );
+	const struct xhci_hcd *xhci,
+	__le32 *regs
+	);
 
 void
 ehub_xhci_writel(
-    struct xhci_hcd *xhci,
-    const unsigned int val,
-    __le32 *regs
-    );
+	struct xhci_hcd *xhci,
+	const unsigned int val,
+	__le32 *regs
+	);
 
 void
 ehub_xhci_writel_doorbell(
-    struct xhci_hcd *xhci,
-    const unsigned int val,
-    __le32 *regs
-    );
+	struct xhci_hcd *xhci,
+	const unsigned int val,
+	__le32 *regs
+	);
 
 int
 ehub_xhci_add(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 ehub_xhci_remove(
-    PDEVICE_CONTEXT DeviceContext
-    );
+	PDEVICE_CONTEXT DeviceContext
+	);
 
 int
 ehub_xhci_reset_device(
-    struct usb_hcd *hcd
-    );
+	struct usb_hcd *hcd
+	);
 
 void
 ehub_xhci_handle_event(
-    const void *xhci_void,
-    struct xhci_generic_trb event
-    );
+	const void *xhci_void,
+	struct xhci_generic_trb event
+	);
 
 /* TODO: copied from ehci.h - can be refactored? */
 /* xHCI spec says all registers are little endian */
 static inline unsigned int xhci_readl(const struct xhci_hcd *xhci,
-        __le32 __iomem *regs)
+		__le32 __iomem *regs)
 {
-    return ehub_xhci_readl(xhci, regs);
+	return ehub_xhci_readl(xhci, regs);
 }
 static inline void xhci_writel(struct xhci_hcd *xhci,
-        const unsigned int val, __le32 __iomem *regs)
+		const unsigned int val, __le32 __iomem *regs)
 {
-    ehub_xhci_writel(xhci, val, regs);
+	ehub_xhci_writel(xhci, val, regs);
 }
 
 static inline void xhci_writel_doorbell(struct xhci_hcd *xhci,
-        const unsigned int val, __le32 __iomem *regs)
+		const unsigned int val, __le32 __iomem *regs)
 {
-    ehub_xhci_writel_doorbell(xhci, val, regs);
+	ehub_xhci_writel_doorbell(xhci, val, regs);
 }
 /*
  * Registers should always be accessed with double word or quad word accesses.
@@ -1875,27 +1875,27 @@ static inline void xhci_writel_doorbell(struct xhci_hcd *xhci,
  * the high dword, and write order is irrelevant.
  */
 static inline u64 xhci_read_64(const struct xhci_hcd *xhci,
-        __le64 __iomem *regs)
+		__le64 __iomem *regs)
 {
-    __u32 __iomem *ptr = (__u32 __iomem *) regs;
-    u64 val_lo = xhci_readl( xhci, ptr);
-    u64 val_hi = xhci_readl( xhci, ptr + 1);
-    return val_lo + (val_hi << 32);
+	__u32 __iomem *ptr = (__u32 __iomem *) regs;
+	u64 val_lo = xhci_readl( xhci, ptr);
+	u64 val_hi = xhci_readl( xhci, ptr + 1);
+	return val_lo + (val_hi << 32);
 }
 static inline void xhci_write_64(struct xhci_hcd *xhci,
-                 const u64 val, __le64 __iomem *regs)
+				 const u64 val, __le64 __iomem *regs)
 {
-    __u32 __iomem *ptr = (__u32 __iomem *) regs;
-    u32 val_lo = lower_32_bits(val);
-    u32 val_hi = upper_32_bits(val);
+	__u32 __iomem *ptr = (__u32 __iomem *) regs;
+	u32 val_lo = lower_32_bits(val);
+	u32 val_hi = upper_32_bits(val);
 
-    xhci_writel( xhci, val_lo, ptr);
-    xhci_writel( xhci, val_hi, ptr + 1);
+	xhci_writel( xhci, val_lo, ptr);
+	xhci_writel( xhci, val_hi, ptr + 1);
 }
 
 static inline int xhci_link_trb_quirk(struct xhci_hcd *xhci)
 {
-    return xhci->quirks & XHCI_LINK_TRB_QUIRK;
+	return xhci->quirks & XHCI_LINK_TRB_QUIRK;
 }
 
 /* xHCI debugging */
@@ -1912,12 +1912,12 @@ void ehub_xhci_dbg_cmd_ptrs(struct xhci_hcd *xhci);
 void ehub_xhci_dbg_ring_ptrs(struct xhci_hcd *xhci, struct xhci_ring *ring);
 void ehub_xhci_dbg_ctx(struct xhci_hcd *xhci, struct xhci_container_ctx *ctx, unsigned int last_ep);
 char *ehub_xhci_get_slot_state(struct xhci_hcd *xhci,
-        struct xhci_container_ctx *ctx);
+		struct xhci_container_ctx *ctx);
 void ehub_xhci_dbg_ep_rings(struct xhci_hcd *xhci,
-        unsigned int slot_id, unsigned int ep_index,
-        struct xhci_virt_ep *ep);
+		unsigned int slot_id, unsigned int ep_index,
+		struct xhci_virt_ep *ep);
 void ehub_xhci_dbg_trace(struct xhci_hcd *xhci, void (*trace)(struct va_format *),
-            const char *fmt, ...);
+			const char *fmt, ...);
 
 /* xHCI memory management */
 void ehub_xhci_mem_cleanup(struct xhci_hcd *xhci);
@@ -1926,7 +1926,7 @@ void ehub_xhci_free_virt_device(struct xhci_hcd *xhci, int slot_id);
 int ehub_xhci_alloc_virt_device(struct xhci_hcd *xhci, int slot_id, struct usb_device *udev, gfp_t flags);
 int ehub_xhci_setup_addressable_virt_dev(struct xhci_hcd *xhci, struct usb_device *udev);
 void ehub_xhci_copy_ep0_dequeue_into_input_ctx(struct xhci_hcd *xhci,
-        struct usb_device *udev);
+		struct usb_device *udev);
 unsigned int ehub_xhci_get_endpoint_index(struct usb_endpoint_descriptor *desc);
 unsigned int ehub_xhci_get_endpoint_address(unsigned int ep_index);
 unsigned int ehub_xhci_get_endpoint_flag(struct usb_endpoint_descriptor *desc);
@@ -1934,60 +1934,60 @@ unsigned int ehub_xhci_get_endpoint_flag_from_index(unsigned int ep_index);
 unsigned int ehub_xhci_last_valid_endpoint(u32 added_ctxs);
 void ehub_xhci_endpoint_zero(struct xhci_hcd *xhci, struct xhci_virt_device *virt_dev, struct usb_host_endpoint *ep);
 void ehub_xhci_drop_ep_from_interval_table(struct xhci_hcd *xhci,
-        struct xhci_bw_info *ep_bw,
-        struct xhci_interval_bw_table *bw_table,
-        struct usb_device *udev,
-        struct xhci_virt_ep *virt_ep,
-        struct xhci_tt_bw_info *tt_info);
+		struct xhci_bw_info *ep_bw,
+		struct xhci_interval_bw_table *bw_table,
+		struct usb_device *udev,
+		struct xhci_virt_ep *virt_ep,
+		struct xhci_tt_bw_info *tt_info);
 void ehub_xhci_update_tt_active_eps(struct xhci_hcd *xhci,
-        struct xhci_virt_device *virt_dev,
-        int old_active_eps);
+		struct xhci_virt_device *virt_dev,
+		int old_active_eps);
 void ehub_xhci_clear_endpoint_bw_info(struct xhci_bw_info *bw_info);
 void ehub_xhci_update_bw_info(struct xhci_hcd *xhci,
-        struct xhci_container_ctx *in_ctx,
-        struct xhci_input_control_ctx *ctrl_ctx,
-        struct xhci_virt_device *virt_dev);
+		struct xhci_container_ctx *in_ctx,
+		struct xhci_input_control_ctx *ctrl_ctx,
+		struct xhci_virt_device *virt_dev);
 void ehub_xhci_endpoint_copy(struct xhci_hcd *xhci,
-        struct xhci_container_ctx *in_ctx,
-        struct xhci_container_ctx *out_ctx,
-        unsigned int ep_index);
+		struct xhci_container_ctx *in_ctx,
+		struct xhci_container_ctx *out_ctx,
+		unsigned int ep_index);
 void ehub_xhci_slot_copy(struct xhci_hcd *xhci,
-        struct xhci_container_ctx *in_ctx,
-        struct xhci_container_ctx *out_ctx);
+		struct xhci_container_ctx *in_ctx,
+		struct xhci_container_ctx *out_ctx);
 int ehub_xhci_endpoint_init(struct xhci_hcd *xhci, struct xhci_virt_device *virt_dev,
-        struct usb_device *udev, struct usb_host_endpoint *ep,
-        gfp_t mem_flags);
+		struct usb_device *udev, struct usb_host_endpoint *ep,
+		gfp_t mem_flags);
 void ehub_xhci_ring_free(struct xhci_hcd *xhci, struct xhci_ring *ring);
 int ehub_xhci_ring_expansion(struct xhci_hcd *xhci, struct xhci_ring *ring,
-                unsigned int num_trbs, gfp_t flags);
+				unsigned int num_trbs, gfp_t flags);
 void ehub_xhci_free_or_cache_endpoint_ring(struct xhci_hcd *xhci,
-        struct xhci_virt_device *virt_dev,
-        unsigned int ep_index);
+		struct xhci_virt_device *virt_dev,
+		unsigned int ep_index);
 struct xhci_stream_info *ehub_xhci_alloc_stream_info(struct xhci_hcd *xhci,
-        unsigned int num_stream_ctxs,
-        unsigned int num_streams, gfp_t flags);
+		unsigned int num_stream_ctxs,
+		unsigned int num_streams, gfp_t flags);
 void ehub_xhci_free_stream_info(struct xhci_hcd *xhci,
-        struct xhci_stream_info *stream_info);
+		struct xhci_stream_info *stream_info);
 void ehub_xhci_setup_streams_ep_input_ctx(struct xhci_hcd *xhci,
-        struct xhci_ep_ctx *ep_ctx,
-        struct xhci_stream_info *stream_info);
+		struct xhci_ep_ctx *ep_ctx,
+		struct xhci_stream_info *stream_info);
 void ehub_xhci_setup_no_streams_ep_input_ctx(struct xhci_ep_ctx *ep_ctx,
-        struct xhci_virt_ep *ep);
+		struct xhci_virt_ep *ep);
 void ehub_xhci_free_device_endpoint_resources(struct xhci_hcd *xhci,
-    struct xhci_virt_device *virt_dev, bool drop_control_ep);
+	struct xhci_virt_device *virt_dev, bool drop_control_ep);
 struct xhci_ring *ehub_xhci_dma_to_transfer_ring(
-        struct xhci_virt_ep *ep,
-        u64 address);
+		struct xhci_virt_ep *ep,
+		u64 address);
 struct xhci_ring *ehub_xhci_stream_id_to_ring(
-        struct xhci_virt_device *dev,
-        unsigned int ep_index,
-        unsigned int stream_id);
+		struct xhci_virt_device *dev,
+		unsigned int ep_index,
+		unsigned int stream_id);
 struct xhci_command *ehub_xhci_alloc_command(struct xhci_hcd *xhci,
-        bool allocate_in_ctx, bool allocate_completion,
-        gfp_t mem_flags);
+		bool allocate_in_ctx, bool allocate_completion,
+		gfp_t mem_flags);
 void ehub_xhci_urb_free_priv(struct urb_priv *urb_priv);
 void ehub_xhci_free_command(struct xhci_hcd *xhci,
-        struct xhci_command *command);
+		struct xhci_command *command);
 
 /* xHCI host controller glue */
 typedef void (*xhci_get_quirks_t)(struct device *, struct xhci_hcd *);
@@ -2017,22 +2017,22 @@ irqreturn_t ehub_xhci_msi_irq(int irq, void *hcd);
 int ehub_xhci_alloc_dev(struct usb_hcd *hcd, struct usb_device *udev);
 void ehub_xhci_free_dev(struct usb_hcd *hcd, struct usb_device *udev);
 int ehub_xhci_alloc_tt_info(struct xhci_hcd *xhci,
-        struct xhci_virt_device *virt_dev,
-        struct usb_device *hdev,
-        struct usb_tt *tt, gfp_t mem_flags);
+		struct xhci_virt_device *virt_dev,
+		struct usb_device *hdev,
+		struct usb_tt *tt, gfp_t mem_flags);
 int ehub_xhci_alloc_streams(struct usb_hcd *hcd, struct usb_device *udev,
-        struct usb_host_endpoint **eps, unsigned int num_eps,
-        unsigned int num_streams, gfp_t mem_flags);
+		struct usb_host_endpoint **eps, unsigned int num_eps,
+		unsigned int num_streams, gfp_t mem_flags);
 int ehub_xhci_free_streams(struct usb_hcd *hcd, struct usb_device *udev,
-        struct usb_host_endpoint **eps, unsigned int num_eps,
-        gfp_t mem_flags);
+		struct usb_host_endpoint **eps, unsigned int num_eps,
+		gfp_t mem_flags);
 int ehub_xhci_address_device(struct usb_hcd *hcd, struct usb_device *udev);
 int ehub_xhci_enable_device(struct usb_hcd *hcd, struct usb_device *udev);
 int ehub_xhci_update_device(struct usb_hcd *hcd, struct usb_device *udev);
 int ehub_xhci_set_usb2_hardware_lpm(struct usb_hcd *hcd,
-                struct usb_device *udev, int enable);
+				struct usb_device *udev, int enable);
 int ehub_xhci_update_hub_device(struct usb_hcd *hcd, struct usb_device *hdev,
-            struct usb_tt *tt, gfp_t mem_flags);
+			struct usb_tt *tt, gfp_t mem_flags);
 int ehub_xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags);
 int ehub_xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status);
 int ehub_xhci_add_endpoint(struct usb_hcd *hcd, struct usb_device *udev, struct usb_host_endpoint *ep);
@@ -2045,70 +2045,70 @@ void ehub_xhci_reset_bandwidth(struct usb_hcd *hcd, struct usb_device *udev);
 /* xHCI ring, segment, TRB, and TD functions */
 dma_addr_t ehub_xhci_trb_virt_to_dma(struct xhci_segment *seg, union xhci_trb *trb);
 struct xhci_segment *ehub_trb_in_td(struct xhci_hcd *xhci,
-        struct xhci_segment *start_seg, union xhci_trb *start_trb,
-        union xhci_trb *end_trb, dma_addr_t suspect_dma, bool debug);
+		struct xhci_segment *start_seg, union xhci_trb *start_trb,
+		union xhci_trb *end_trb, dma_addr_t suspect_dma, bool debug);
 int ehub_xhci_is_vendor_info_code(struct xhci_hcd *xhci, unsigned int trb_comp_code);
 void ehub_xhci_ring_cmd_db(struct xhci_hcd *xhci);
 void ehub_xhci_ring_cmd_db_low(struct xhci_hcd *xhci);
 int ehub_xhci_queue_slot_control(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        u32 trb_type, u32 slot_id);
+		u32 trb_type, u32 slot_id);
 int ehub_xhci_queue_address_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        dma_addr_t in_ctx_ptr, u32 slot_id, enum xhci_setup_dev);
+		dma_addr_t in_ctx_ptr, u32 slot_id, enum xhci_setup_dev);
 int ehub_xhci_queue_vendor_command(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        u32 field1, u32 field2, u32 field3, u32 field4);
+		u32 field1, u32 field2, u32 field3, u32 field4);
 int ehub_xhci_queue_stop_endpoint(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        int slot_id, unsigned int ep_index, int suspend);
+		int slot_id, unsigned int ep_index, int suspend);
 int ehub_xhci_queue_ctrl_tx(struct xhci_hcd *xhci, gfp_t mem_flags, struct urb *urb,
-        int slot_id, unsigned int ep_index);
+		int slot_id, unsigned int ep_index);
 int ehub_xhci_queue_bulk_tx(struct xhci_hcd *xhci, gfp_t mem_flags, struct urb *urb,
-        int slot_id, unsigned int ep_index);
+		int slot_id, unsigned int ep_index);
 int ehub_xhci_queue_intr_tx(struct xhci_hcd *xhci, gfp_t mem_flags, struct urb *urb,
-        int slot_id, unsigned int ep_index);
+		int slot_id, unsigned int ep_index);
 int ehub_xhci_queue_isoc_tx_prepare(struct xhci_hcd *xhci, gfp_t mem_flags,
-        struct urb *urb, int slot_id, unsigned int ep_index);
+		struct urb *urb, int slot_id, unsigned int ep_index);
 int ehub_xhci_queue_configure_endpoint(struct xhci_hcd *xhci,
-        struct xhci_command *cmd, dma_addr_t in_ctx_ptr, u32 slot_id,
-        bool command_must_succeed);
+		struct xhci_command *cmd, dma_addr_t in_ctx_ptr, u32 slot_id,
+		bool command_must_succeed);
 int ehub_xhci_queue_evaluate_context(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        dma_addr_t in_ctx_ptr, u32 slot_id, bool command_must_succeed);
+		dma_addr_t in_ctx_ptr, u32 slot_id, bool command_must_succeed);
 int ehub_xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        int slot_id, unsigned int ep_index);
+		int slot_id, unsigned int ep_index);
 int ehub_xhci_queue_reset_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
-        u32 slot_id);
+		u32 slot_id);
 struct xhci_ring *xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
-    unsigned int slot_id, unsigned int ep_index,
-                                              unsigned int stream_id);
+	unsigned int slot_id, unsigned int ep_index,
+											  unsigned int stream_id);
 void ehub_xhci_find_new_dequeue_state(struct xhci_hcd *xhci,
-        unsigned int slot_id, unsigned int ep_index,
-        unsigned int stream_id, struct xhci_td *cur_td,
-        struct xhci_dequeue_state *state);
+		unsigned int slot_id, unsigned int ep_index,
+		unsigned int stream_id, struct xhci_td *cur_td,
+		struct xhci_dequeue_state *state);
 void ehub_xhci_queue_new_dequeue_state(struct xhci_hcd *xhci,
-        unsigned int slot_id, unsigned int ep_index,
-        unsigned int stream_id,
-        struct xhci_dequeue_state *deq_state);
+		unsigned int slot_id, unsigned int ep_index,
+		unsigned int stream_id,
+		struct xhci_dequeue_state *deq_state);
 void ehub_xhci_cleanup_stalled_ring(struct xhci_hcd *xhci,
-        unsigned int ep_index, struct xhci_td *td);
+		unsigned int ep_index, struct xhci_td *td);
 void xhci_queue_config_ep_quirk(struct xhci_hcd *xhci,
-        unsigned int slot_id, unsigned int ep_index,
-        struct xhci_dequeue_state *deq_state);
+		unsigned int slot_id, unsigned int ep_index,
+		struct xhci_dequeue_state *deq_state);
 void ehub_xhci_stop_endpoint_command_watchdog(unsigned long arg);
 void ehub_xhci_handle_command_timeout(unsigned long data);
 
 void ehub_xhci_ring_ep_doorbell(struct xhci_hcd *xhci, unsigned int slot_id,
-        unsigned int ep_index, unsigned int stream_id);
+		unsigned int ep_index, unsigned int stream_id);
 void ehub_xhci_cleanup_command_queue(struct xhci_hcd *xhci);
 
 /* xHCI roothub code */
 void ehub_xhci_set_link_state(struct xhci_hcd *xhci, __le32 __iomem **port_array,
-                int port_id, u32 link_state);
+				int port_id, u32 link_state);
 int ehub_xhci_enable_usb3_lpm_timeout(struct usb_hcd *hcd,
-            struct usb_device *udev, enum usb3_link_state state);
+			struct usb_device *udev, enum usb3_link_state state);
 int ehub_xhci_disable_usb3_lpm_timeout(struct usb_hcd *hcd,
-            struct usb_device *udev, enum usb3_link_state state);
+			struct usb_device *udev, enum usb3_link_state state);
 void ehub_xhci_test_and_clear_bit(struct xhci_hcd *xhci, __le32 __iomem **port_array,
-                int port_id, u32 port_bit);
+				int port_id, u32 port_bit);
 int ehub_xhci_hub_control(struct usb_hcd *hcd, u16 typeReq, u16 wValue, u16 wIndex,
-        char *buf, u16 wLength);
+		char *buf, u16 wLength);
 int ehub_xhci_hub_status_data(struct usb_hcd *hcd, char *buf);
 int ehub_xhci_find_raw_port_number(struct usb_hcd *hcd, int port1);
 
@@ -2122,7 +2122,7 @@ int ehub_xhci_bus_resume(struct usb_hcd *hcd);
 
 u32 ehub_xhci_port_state_to_neutral(u32 state);
 int ehub_xhci_find_slot_id_by_port(struct usb_hcd *hcd, struct xhci_hcd *xhci,
-        u16 port);
+		u16 port);
 void ehub_xhci_ring_device(struct xhci_hcd *xhci, int slot_id);
 
 /* xHCI contexts */
@@ -2137,159 +2137,159 @@ void handle_port_status(struct xhci_hcd *xhci,union xhci_trb *event);
 static inline int ehub_cache_ring(enum xhci_ring_type type)
 {
 #ifdef USE_TRB_CACHE_MODE
-    switch (type) {
-        case TYPE_CTRL:
-        case TYPE_ISOC:
-        case TYPE_BULK:
-        case TYPE_INTR:
+	switch (type) {
+		case TYPE_CTRL:
+		case TYPE_ISOC:
+		case TYPE_BULK:
+		case TYPE_INTR:
 #ifdef USE_CMD_TRB_CACHE
-        case TYPE_COMMAND:
+		case TYPE_COMMAND:
 #endif /* USE_CMD_TRB_CACHE */
-            return true;
+			return true;
 
-        case TYPE_STREAM:
-        case TYPE_EVENT:
-        default:
-            return false;
-    }
+		case TYPE_STREAM:
+		case TYPE_EVENT:
+		default:
+			return false;
+	}
 #else /* ! USE_TRB_CACHE_MODE */
-    return false;
+	return false;
 #endif /* ! USE_TRB_CACHE_MODE */
 }
 
 static inline int ehub_intf_going_gone(struct xhci_hcd *xhci)
 {
-    const struct usb_interface *iface = xhci->DeviceContext->InterfaceBackup;
-    if (iface && (iface->condition == USB_INTERFACE_UNBINDING ||
-                  iface->condition == USB_INTERFACE_UNBOUND))
-        return true;
-    return false;
+	const struct usb_interface *iface = xhci->DeviceContext->InterfaceBackup;
+	if (iface && (iface->condition == USB_INTERFACE_UNBINDING ||
+				  iface->condition == USB_INTERFACE_UNBOUND))
+		return true;
+	return false;
 }
 
 static inline void xhci_reg_lock(struct xhci_hcd *xhci)
 {
-    might_sleep();
+	might_sleep();
 
-    if ( down_interruptible( &xhci->reg_lock ) )
-    {
-        KERNEL_PANIC("PANIC: xhci_reg_lock FAILED\n");
-    }
+	if ( down_interruptible( &xhci->reg_lock ) )
+	{
+		KERNEL_PANIC("PANIC: xhci_reg_lock FAILED\n");
+	}
 
-    if ( xhci->reg_lock_acquired )
-    {
-        KERNEL_PANIC("PANIC: reg_lock already locked.\n");
-    }
+	if ( xhci->reg_lock_acquired )
+	{
+		KERNEL_PANIC("PANIC: reg_lock already locked.\n");
+	}
 
-    xhci->reg_lock_acquired = true;
+	xhci->reg_lock_acquired = true;
 }
 
 static inline void xhci_reg_unlock(struct xhci_hcd *xhci)
 {
-    if ( ! xhci->reg_lock_acquired )
-    {
-        KERNEL_PANIC("PANIC: reg_lock already unlocked.\n");
-    }
+	if ( ! xhci->reg_lock_acquired )
+	{
+		KERNEL_PANIC("PANIC: reg_lock already unlocked.\n");
+	}
 
-    xhci->reg_lock_acquired = false;
+	xhci->reg_lock_acquired = false;
 
-    up( &xhci->reg_lock );
+	up( &xhci->reg_lock );
 }
 
 struct event_work_context {
-    struct delayed_work work;
-    struct xhci_hcd *xhci;
-    struct xhci_generic_trb event;
+	struct delayed_work work;
+	struct xhci_hcd *xhci;
+	struct xhci_generic_trb event;
 };
 
 #ifdef USE_TRB_CACHE_MODE
 int
 ehub_xhci_cache_create(
-    struct xhci_hcd *xhci
-    );
+	struct xhci_hcd *xhci
+	);
 
 int
 ehub_xhci_cache_work_expand(
-    struct xhci_hcd *xhci,
-    ulong entries,
-    gfp_t flags
+	struct xhci_hcd *xhci,
+	ulong entries,
+	gfp_t flags
 );
 
 void
 ehub_xhci_cache_destroy(
-    struct xhci_hcd *xhci
-    );
+	struct xhci_hcd *xhci
+	);
 
 PEHUB_CACHE_BLOCK
 ehub_xhci_cache_block_allocate(
-    struct xhci_hcd *xhci
-    );
+	struct xhci_hcd *xhci
+	);
 
 PEHUB_CACHE_BLOCK
 ehub_xhci_cache_block_allocate_segment(
-    struct xhci_hcd *xhci,
-    int cycle_state,
-    void *start_addr
-    );
+	struct xhci_hcd *xhci,
+	int cycle_state,
+	void *start_addr
+	);
 
 void
 ehub_xhci_cache_block_free(
-    struct xhci_hcd *xhci,
-    PEHUB_CACHE_BLOCK EhubCacheBlock
-    );
+	struct xhci_hcd *xhci,
+	PEHUB_CACHE_BLOCK EhubCacheBlock
+	);
 
 void
 ehub_xhci_cache_block_free_by_urb(
-    struct xhci_hcd *xhci,
-    struct urb* urb
-    );
+	struct xhci_hcd *xhci,
+	struct urb* urb
+	);
 
 union xhci_trb*
 ehub_xhci_cache_get_trb(
-    struct xhci_hcd *xhci,
-    PEHUB_CACHE_BLOCK EhubCacheBlock,
-    int IndexOfTrb
-    );
+	struct xhci_hcd *xhci,
+	PEHUB_CACHE_BLOCK EhubCacheBlock,
+	int IndexOfTrb
+	);
 
 void
 ehub_xhci_cache_copy_from_ring(
-    struct xhci_hcd *xhci,
-    unsigned int slot_id,
-    unsigned int ep_index,
-    unsigned int stream_id,
-    bool ring_doorbell
+	struct xhci_hcd *xhci,
+	unsigned int slot_id,
+	unsigned int ep_index,
+	unsigned int stream_id,
+	bool ring_doorbell
 );
 
 int
 ehub_queue_cache_write(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 CacheAddress,
-    u32* DataBuffer,
-    u32 DataBufferLength,
-    int TrbCycleState,
-    bool ring_doorbell,
-    unsigned int slot_id,
-    unsigned int ep_index,
-    unsigned int stream_id
+	PDEVICE_CONTEXT DeviceContext,
+	u32 CacheAddress,
+	u32* DataBuffer,
+	u32 DataBufferLength,
+	int TrbCycleState,
+	bool ring_doorbell,
+	unsigned int slot_id,
+	unsigned int ep_index,
+	unsigned int stream_id
 );
 
 union xhci_trb*
 ehub_xhci_get_last_trb_from_segment(
-    struct xhci_segment *seg
-    );
+	struct xhci_segment *seg
+	);
 
 union xhci_trb*
 ehub_xhci_get_link_trb_from_segment(
-    struct xhci_segment *seg
-    );
+	struct xhci_segment *seg
+	);
 #endif /* USE_TRB_CACHE_MODE */
 
 u64
 ehub_xhci_get_data_buffer_addr(
-    struct xhci_hcd *xhci,
-    struct urb *urb,
-    u64 addr,
-    int trb_buff_len
-    );
+	struct xhci_hcd *xhci,
+	struct urb *urb,
+	u64 addr,
+	int trb_buff_len
+	);
 
 void ehub_xhci_handle_queued_port_status(struct work_struct* work_context);
 void ehub_xhci_queue_port_status_event(struct xhci_hcd *xhci,union xhci_trb *event);

@@ -29,230 +29,230 @@
 
 int
 EMBEDDED_REGISTER_Read(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Address,
-    u32* Data
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Address,
+	u32* Data
+	)
 {
-    PURB_CONTEXT urbContext;
-    PEMBEDDED_REGISTER_COMMAND embeddedRegisterCommand;
-    int status;
+	PURB_CONTEXT urbContext;
+	PEMBEDDED_REGISTER_COMMAND embeddedRegisterCommand;
+	int status;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    might_sleep();
-    if (down_interruptible(&DeviceContext->EmbeddedRegisterLock))
-        ASSERT(false);
+	might_sleep();
+	if (down_interruptible(&DeviceContext->EmbeddedRegisterLock))
+		ASSERT(false);
 
-    urbContext = DeviceContext->UrbContextEmbeddedRegisterRead;
+	urbContext = DeviceContext->UrbContextEmbeddedRegisterRead;
 
-    if (!urbContext) {
-        *Data = ~(0);
-        status = -ESHUTDOWN;
-        goto Exit;
-    }
+	if (!urbContext) {
+		*Data = ~(0);
+		status = -ESHUTDOWN;
+		goto Exit;
+	}
 
-    embeddedRegisterCommand = ( PEMBEDDED_REGISTER_COMMAND )urbContext->DataBuffer;
+	embeddedRegisterCommand = ( PEMBEDDED_REGISTER_COMMAND )urbContext->DataBuffer;
 
-    memset( embeddedRegisterCommand, 0, sizeof( EMBEDDED_REGISTER_COMMAND ) );
+	memset( embeddedRegisterCommand, 0, sizeof( EMBEDDED_REGISTER_COMMAND ) );
 
-    embeddedRegisterCommand->Address = Address;
-    embeddedRegisterCommand->ByteEnables = 0x0F;
-    embeddedRegisterCommand->RegAccess = true;
-    embeddedRegisterCommand->Read = true;
-    embeddedRegisterCommand->Write = false;
+	embeddedRegisterCommand->Address = Address;
+	embeddedRegisterCommand->ByteEnables = 0x0F;
+	embeddedRegisterCommand->RegAccess = true;
+	embeddedRegisterCommand->Read = true;
+	embeddedRegisterCommand->Write = false;
 
-    NOTIFICATION_Reset( &urbContext->Event );
-    NOTIFICATION_Reset( &DeviceContext->CompletionEventEmbeddedRegisterRead );
+	NOTIFICATION_Reset( &urbContext->Event );
+	NOTIFICATION_Reset( &DeviceContext->CompletionEventEmbeddedRegisterRead );
 
-    status = URB_Submit( urbContext );
-    if (status < 0)
-    {
-        *Data = ~(0);
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Read addr 0x%X URB_Submit error! %d\n", Address, status );
-        goto Exit;
-    }
+	status = URB_Submit( urbContext );
+	if (status < 0)
+	{
+		*Data = ~(0);
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Read addr 0x%X URB_Submit error! %d\n", Address, status );
+		goto Exit;
+	}
 
-    status = NOTIFICATION_Wait( DeviceContext,
-                                &urbContext->Event,
-                                NOTIFICATION_EVENT_TIMEOUT );
-    if (status < 0)
-    {
-        *Data = ~(0);
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Read addr 0x%X NOTIFICATION_Wait error! %d\n", Address, status );
-        goto Exit;
-    }
+	status = NOTIFICATION_Wait( DeviceContext,
+								&urbContext->Event,
+								NOTIFICATION_EVENT_TIMEOUT );
+	if (status < 0)
+	{
+		*Data = ~(0);
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Read addr 0x%X NOTIFICATION_Wait error! %d\n", Address, status );
+		goto Exit;
+	}
 
-    status = NOTIFICATION_Wait( DeviceContext,
-                                &DeviceContext->CompletionEventEmbeddedRegisterRead,
-                                NOTIFICATION_EVENT_TIMEOUT );
-    if (status < 0)
-    {
-        *Data = ~(0);
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Read addr 0x%X NOTIFICATION_Wait Read error! %d\n", Address, status );
-    }
-    else
-    {
-        *Data = DeviceContext->DataEmbeddedRegisterRead;
-        dev_dbg ( dev_ctx_to_dev ( DeviceContext ), "0x%08x = %08xh \n",
-                   Address,
-                   *Data );
-    }
+	status = NOTIFICATION_Wait( DeviceContext,
+								&DeviceContext->CompletionEventEmbeddedRegisterRead,
+								NOTIFICATION_EVENT_TIMEOUT );
+	if (status < 0)
+	{
+		*Data = ~(0);
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Read addr 0x%X NOTIFICATION_Wait Read error! %d\n", Address, status );
+	}
+	else
+	{
+		*Data = DeviceContext->DataEmbeddedRegisterRead;
+		dev_dbg ( dev_ctx_to_dev ( DeviceContext ), "0x%08x = %08xh \n",
+				   Address,
+				   *Data );
+	}
 
 Exit:
 
-    if (status < 0)
-    {
-        DeviceContext->ErrorFlags.EmbeddedRegisterError = 1;
-    }
+	if (status < 0)
+	{
+		DeviceContext->ErrorFlags.EmbeddedRegisterError = 1;
+	}
 
-    up(&DeviceContext->EmbeddedRegisterLock);
+	up(&DeviceContext->EmbeddedRegisterLock);
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 
-    return status;
+	return status;
 }
 
 int
 EMBEDDED_REGISTER_Write(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Address,
-    u32* Data
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Address,
+	u32* Data
+	)
 {
-    PURB_CONTEXT urbContext;
-    PEMBEDDED_REGISTER_COMMAND embeddedRegisterCommand;
-    PEMBEDDED_REGISTER_DATA_TRANSFER embedded_register_transfer;
-    int status;
+	PURB_CONTEXT urbContext;
+	PEMBEDDED_REGISTER_COMMAND embeddedRegisterCommand;
+	PEMBEDDED_REGISTER_DATA_TRANSFER embedded_register_transfer;
+	int status;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    might_sleep();
-    if (down_interruptible(&DeviceContext->EmbeddedRegisterLock))
-        ASSERT(false);
+	might_sleep();
+	if (down_interruptible(&DeviceContext->EmbeddedRegisterLock))
+		ASSERT(false);
 
-    dev_dbg ( dev_ctx_to_dev ( DeviceContext ),
-             "WriteAddress : 0x%04x , WriteData : 0x%08x \n",
-               Address,
-               *Data );
+	dev_dbg(dev_ctx_to_dev(DeviceContext),
+			"WriteAddress : 0x%04x , WriteData : 0x%08x \n",
+			Address,
+			*Data);
 
-    urbContext = DeviceContext->UrbContextEmbeddedRegisterWrite;
+	urbContext = DeviceContext->UrbContextEmbeddedRegisterWrite;
 
-    embedded_register_transfer = ( PEMBEDDED_REGISTER_DATA_TRANSFER )urbContext->DataBuffer;
+	embedded_register_transfer = ( PEMBEDDED_REGISTER_DATA_TRANSFER )urbContext->DataBuffer;
 
-    embeddedRegisterCommand = &embedded_register_transfer->EmbeddedRegisterCommand;
+	embeddedRegisterCommand = &embedded_register_transfer->EmbeddedRegisterCommand;
 
-    memset( embeddedRegisterCommand, 0, sizeof( EMBEDDED_REGISTER_COMMAND ) );
+	memset( embeddedRegisterCommand, 0, sizeof( EMBEDDED_REGISTER_COMMAND ) );
 
-    embeddedRegisterCommand->Address = Address;
-    embeddedRegisterCommand->ByteEnables = 0xFF;
-    embeddedRegisterCommand->RegAccess = true;
-    embeddedRegisterCommand->Read = false;
-    embeddedRegisterCommand->Write = true;
+	embeddedRegisterCommand->Address = Address;
+	embeddedRegisterCommand->ByteEnables = 0xFF;
+	embeddedRegisterCommand->RegAccess = true;
+	embeddedRegisterCommand->Read = false;
+	embeddedRegisterCommand->Write = true;
 
-    embedded_register_transfer->Data = *Data;
+	embedded_register_transfer->Data = *Data;
 
-    status = URB_Submit( urbContext );
-    if (status < 0)
-    {
-        *Data = ~(0);
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Write addr 0x%X URB_Submit fail! %d\n", Address, status );
-        goto Exit;
-    }
+	status = URB_Submit( urbContext );
+	if (status < 0)
+	{
+		*Data = ~(0);
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Write addr 0x%X URB_Submit fail! %d\n", Address, status );
+		goto Exit;
+	}
 
-    status = NOTIFICATION_Wait( DeviceContext,
-                                &urbContext->Event,
-                                NOTIFICATION_EVENT_TIMEOUT );
-    if (status < 0)
-    {
-        *Data = ~(0);
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Write addr 0x%X NOTIFICATION_Wait timeout! %d\n", Address, status );
-        goto Exit;
-    }
+	status = NOTIFICATION_Wait( DeviceContext,
+								&urbContext->Event,
+								NOTIFICATION_EVENT_TIMEOUT );
+	if (status < 0)
+	{
+		*Data = ~(0);
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR Write addr 0x%X NOTIFICATION_Wait timeout! %d\n", Address, status );
+		goto Exit;
+	}
 
 Exit:
 
-    if (status < 0)
-    {
-        DeviceContext->ErrorFlags.EmbeddedRegisterError = 1;
-    }
+	if (status < 0)
+	{
+		DeviceContext->ErrorFlags.EmbeddedRegisterError = 1;
+	}
 
-    up(&DeviceContext->EmbeddedRegisterLock);
+	up(&DeviceContext->EmbeddedRegisterLock);
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 
-    return status;
+	return status;
 }
 
 int
 EMBEDDED_REGISTER_Write_Doorbell(
-    PDEVICE_CONTEXT DeviceContext,
-    u32 Address,
-    u32* Data
-    )
+	PDEVICE_CONTEXT DeviceContext,
+	u32 Address,
+	u32* Data
+	)
 {
-    PURB_CONTEXT urbContext;
-    PEMBEDDED_REGISTER_COMMAND embeddedRegisterCommand;
-    PEMBEDDED_REGISTER_DATA_TRANSFER embedded_register_transfer;
-    int status;
-    unsigned long flags;
-    int new_entries = 1;
+	PURB_CONTEXT urbContext;
+	PEMBEDDED_REGISTER_COMMAND embeddedRegisterCommand;
+	PEMBEDDED_REGISTER_DATA_TRANSFER embedded_register_transfer;
+	int status;
+	unsigned long flags;
+	int new_entries = 1;
 
-    FUNCTION_ENTRY;
+	FUNCTION_ENTRY;
 
-    dev_dbg ( dev_ctx_to_dev ( DeviceContext ), "WriteAddress : 0x%08x , WriteData : 0x%08x \n",
-               Address,
-               *Data );
+	dev_dbg(dev_ctx_to_dev(DeviceContext), "WriteAddress : 0x%08x , WriteData : 0x%08x \n",
+			Address,
+			*Data);
 
-    spin_lock_irqsave( &DeviceContext->SpinLockEmbeddedDoorbellWrite, flags);
+	spin_lock_irqsave( &DeviceContext->SpinLockEmbeddedDoorbellWrite, flags);
 
-    if (list_empty(&DeviceContext->doorbell_list_free))
-        new_entries = ehub_xhci_doorbell_expand(DeviceContext, 4, GFP_ATOMIC);
+	if (list_empty(&DeviceContext->doorbell_list_free))
+		new_entries = ehub_xhci_doorbell_expand(DeviceContext, 4, GFP_ATOMIC);
 
-    if (new_entries < 1) {
-        ASSERT(false);
-        spin_unlock_irqrestore(&DeviceContext->SpinLockEmbeddedDoorbellWrite, flags);
-        return -ENOBUFS;
-    }
+	if (new_entries < 1) {
+		ASSERT(false);
+		spin_unlock_irqrestore(&DeviceContext->SpinLockEmbeddedDoorbellWrite, flags);
+		return -ENOBUFS;
+	}
 
-    urbContext = list_first_entry(&DeviceContext->doorbell_list_free,
-                                  URB_CONTEXT,
-                                  list);
+	urbContext = list_first_entry(&DeviceContext->doorbell_list_free,
+								  URB_CONTEXT,
+								  list);
 
-    list_move_tail(&urbContext->list, &DeviceContext->doorbell_list_busy);
-    spin_unlock_irqrestore( &DeviceContext->SpinLockEmbeddedDoorbellWrite, flags );
+	list_move_tail(&urbContext->list, &DeviceContext->doorbell_list_busy);
+	spin_unlock_irqrestore( &DeviceContext->SpinLockEmbeddedDoorbellWrite, flags );
 
-    embedded_register_transfer = ( PEMBEDDED_REGISTER_DATA_TRANSFER )urbContext->DataBuffer;
+	embedded_register_transfer = ( PEMBEDDED_REGISTER_DATA_TRANSFER )urbContext->DataBuffer;
 
-    embeddedRegisterCommand = &embedded_register_transfer->EmbeddedRegisterCommand;
+	embeddedRegisterCommand = &embedded_register_transfer->EmbeddedRegisterCommand;
 
-    memset( embeddedRegisterCommand, 0, sizeof( EMBEDDED_REGISTER_COMMAND ) );
+	memset( embeddedRegisterCommand, 0, sizeof( EMBEDDED_REGISTER_COMMAND ) );
 
-    embeddedRegisterCommand->Address = Address;
-    embeddedRegisterCommand->ByteEnables = 0xFF;
-    embeddedRegisterCommand->RegAccess = true;
-    embeddedRegisterCommand->Read = false;
-    embeddedRegisterCommand->Write = true;
+	embeddedRegisterCommand->Address = Address;
+	embeddedRegisterCommand->ByteEnables = 0xFF;
+	embeddedRegisterCommand->RegAccess = true;
+	embeddedRegisterCommand->Read = false;
+	embeddedRegisterCommand->Write = true;
 
-    embedded_register_transfer->Data = *Data;
+	embedded_register_transfer->Data = *Data;
 
-    status = URB_Submit( urbContext );
-    if (status < 0)
-    {
-        *Data = ~(0);
-        dev_err(dev_ctx_to_dev(DeviceContext), "ERROR URB_Submit fail! %d\n", status);
-        goto Exit;
-    }
+	status = URB_Submit( urbContext );
+	if (status < 0)
+	{
+		*Data = ~(0);
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR URB_Submit fail! %d\n", status);
+		goto Exit;
+	}
 
 Exit:
 
-    if (status < 0)
-    {
-        DeviceContext->ErrorFlags.EmbeddedRegisterError = 1;
-    }
+	if (status < 0)
+	{
+		DeviceContext->ErrorFlags.EmbeddedRegisterError = 1;
+	}
 
-    FUNCTION_LEAVE;
+	FUNCTION_LEAVE;
 
-    return status;
+	return status;
 }
 
