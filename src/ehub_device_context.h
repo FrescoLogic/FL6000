@@ -168,6 +168,8 @@ typedef struct _DEVICE_CONTEXT_
 	unsigned int last_uframe_cnt;
 	ktime_t last_uframe_time;
 	ktime_t pending_uframe_time;
+
+	struct delayed_work stop_isoch_work;
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 
 #define IS_URB_ERROR( _DeviceContext_ )                      ( _DeviceContext_->ErrorFlags.UrbContextAllocationError )

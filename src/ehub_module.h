@@ -22,7 +22,7 @@
 #define EHUB_MODULE_H
 
 #define STRING_MODULE_LICENSE       "GPL"
-#define STRING_MODULE_DESCRIPTION   "Fresco Logic eHub device driver - Version 0.4.0.0"
+#define STRING_MODULE_DESCRIPTION   "Fresco Logic eHub device driver - Version 0.5.0.0"
 #define STRING_MODULE_AUTHOR        "Fresco Logic"
 
 int

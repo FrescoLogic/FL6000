@@ -144,6 +144,8 @@ USB_InterfaceCreateIsoch(
 
 	FUNCTION_ENTRY;
 
+	dev_warn(dev_ctx_to_dev(DeviceContext), "USB_InterfaceCreateIsoch: calling usb_set_interface\n" );
+
 	status = usb_set_interface(DeviceContext->UsbContext.UsbDevice,
 							   EHUB_INTERFACE_NUMBER_ISOCH,
 							   EHUB_INTERFACE_ALTERNATE_SETTING_ISOCH);
@@ -152,10 +154,12 @@ USB_InterfaceCreateIsoch(
 		goto Exit;
 	}
 
-	status = MESSAGE_StartLoopIsoch(DeviceContext);
+	status = MESSAGE_InitLoopIsoch( DeviceContext );
 
-	if (status < 0)
-		MESSAGE_StopLoopIsoch(DeviceContext);
+	if (status < 0) {
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR MESSAGE_InitLoopIsoch fail! %d\n", status);
+		MESSAGE_FreeLoopIsoch(DeviceContext);
+	}
 
 Exit:
 
@@ -169,7 +173,9 @@ USB_InterfaceDestroyIsoch(
 	PDEVICE_CONTEXT DeviceContext
 )
 {
+	dev_warn(dev_ctx_to_dev(DeviceContext), "USB_InterfaceDestroyIsoch: calling MESSAGE_StopLoopIsoch\n" );
 	MESSAGE_StopLoopIsoch(DeviceContext);
+	MESSAGE_FreeLoopIsoch( DeviceContext );
 	return 0;
 }
 
@@ -178,7 +184,8 @@ USB_InterfaceSuspendIsoch(
 	PDEVICE_CONTEXT DeviceContext
 )
 {
-	MESSAGE_StopLoopIsoch(DeviceContext);
+	if (dev_ctx_to_xhci(DeviceContext)->isoch_in_running)
+		MESSAGE_StopLoopIsoch(DeviceContext);
 	return 0;
 }
 
@@ -187,6 +194,11 @@ USB_InterfaceResumeIsoch(
 	PDEVICE_CONTEXT DeviceContext
 )
 {
-	return MESSAGE_StartLoopIsoch( DeviceContext );
+	int status = 0;
+
+	if (atomic_read( &dev_ctx_to_xhci(DeviceContext)->num_active_isoc_eps))
+		status = MESSAGE_StartLoopIsoch( DeviceContext );
+
+	return status;
 }
 #endif /* EHUB_ISOCH_ENABLE */

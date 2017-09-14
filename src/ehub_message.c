@@ -459,15 +459,17 @@ Exit:
 
 #ifdef EHUB_ISOCH_ENABLE
 int
-MESSAGE_StartLoopIsoch(
+MESSAGE_InitLoopIsoch(
 	PDEVICE_CONTEXT DeviceContext
 )
 {
 	int indexOfMessage;
-	int status;
+	int status = 0;
 	PURB_CONTEXT urbContext;
 
 	FUNCTION_ENTRY;
+
+	dev_info(dev_ctx_to_dev(DeviceContext), "MESSAGE_InitLoopIsoch\n");
 
 	for (indexOfMessage = 0; indexOfMessage < NUMBER_OF_MESSAGE_ISOCH; indexOfMessage++) {
 		dev_dbg(dev_ctx_to_dev(DeviceContext), "CreateIsoch idx=%d\n",indexOfMessage);
@@ -487,6 +489,45 @@ MESSAGE_StartLoopIsoch(
 
 		dev_dbg(dev_ctx_to_dev(DeviceContext), "urbContext=0x%p\n", urbContext);
 
+	}
+
+Exit:
+
+	FUNCTION_LEAVE;
+
+	return status;
+}
+
+int
+MESSAGE_StartLoopIsoch(
+	PDEVICE_CONTEXT DeviceContext
+)
+{
+	int indexOfMessage;
+	int status = 0;
+	PURB_CONTEXT urbContext;
+
+	FUNCTION_ENTRY;
+
+	dev_info(dev_ctx_to_dev(DeviceContext), "MESSAGE_StartLoopIsoch from %ps\n", __builtin_return_address(0));
+
+	if (delayed_work_pending(&DeviceContext->stop_isoch_work)) {
+		bool cancelled = false;
+		cancelled = cancel_delayed_work_sync(&DeviceContext->stop_isoch_work);
+		dev_info(dev_ctx_to_dev(DeviceContext), "cancel_delayed_work_sync returned %d\n", cancelled);
+
+	}
+
+	if (dev_ctx_to_xhci(DeviceContext)->isoch_in_running) {
+		dev_info(dev_ctx_to_dev(DeviceContext), "Isoch already running\n");
+		goto Exit;
+	}
+
+	for (indexOfMessage = 0; indexOfMessage < NUMBER_OF_MESSAGE_ISOCH; indexOfMessage++) {
+		urbContext = DeviceContext->UrbContextMessageIsoch[indexOfMessage];
+
+		dev_dbg(dev_ctx_to_dev(DeviceContext), "StartIsoch idx=%d urbContext=0x%p\n",indexOfMessage, urbContext);
+
 		status = URB_Submit(urbContext);
 		if (status < 0) {
 			dev_err(dev_ctx_to_dev(DeviceContext), "ERROR URB_Submit fail! %d\n", status);
@@ -494,6 +535,9 @@ MESSAGE_StartLoopIsoch(
 			goto Exit;
 		}
 	}
+
+	dev_info(dev_ctx_to_dev(DeviceContext), "MESSAGE_StartLoopIsoch set isoch_in_running true\n");
+	dev_ctx_to_xhci(DeviceContext)->isoch_in_running = true;
 
 Exit:
 
@@ -564,14 +608,71 @@ MESSAGE_StopLoopIsoch(
 	int indexOfMessage;
 	PURB_CONTEXT urbContext;
 
-	for (indexOfMessage = 0; indexOfMessage < NUMBER_OF_MESSAGE_ISOCH; indexOfMessage++) {
+	dev_info(dev_ctx_to_dev(DeviceContext), "MESSAGE_StopLoopIsoch\n" );
+	if (!dev_ctx_to_xhci(DeviceContext)->isoch_in_running) {
+		dev_info(dev_ctx_to_dev(DeviceContext), "Isoch not running\n");
+		return;
+	}
+
+for (indexOfMessage = 0; indexOfMessage < NUMBER_OF_MESSAGE_ISOCH; indexOfMessage++) {
 		urbContext = DeviceContext->UrbContextMessageIsoch[indexOfMessage];
-		DeviceContext->UrbContextMessageIsoch[indexOfMessage] = NULL;
 		if (NULL != urbContext) {
 			NOTIFICATION_Notify(DeviceContext,
 								&urbContext->Event);
 			urbContext->Status = URB_STATUS_COMPLETE;
 			usb_kill_urb(urbContext->Urb);
+		}
+	}
+	dev_info(dev_ctx_to_dev(DeviceContext), "MESSAGE_StopLoopIsoch clear isoch_in_running false\n");
+	dev_ctx_to_xhci(DeviceContext)->isoch_in_running = false;
+}
+
+void
+MESSAGE_delayed_StopLoopIsoch(
+	struct work_struct* work
+)
+{
+	PDEVICE_CONTEXT DeviceContext =
+		container_of(work, DEVICE_CONTEXT, stop_isoch_work.work);
+
+	dev_info(dev_ctx_to_dev(DeviceContext),
+			 "MESSAGE_delayed_StopLoopIsoch DC=0x%p\n", DeviceContext );
+
+	MESSAGE_StopLoopIsoch(DeviceContext);
+}
+
+void
+MESSAGE_queue_StopLoopIsoch(
+	PDEVICE_CONTEXT DeviceContext
+)
+{
+	dev_info(dev_ctx_to_dev(DeviceContext),
+			 "MESSAGE_queue_StopLoopIsoch DC=0x%p\n", DeviceContext);
+
+	if (delayed_work_pending(&DeviceContext->stop_isoch_work)) {
+		dev_info(dev_ctx_to_dev(DeviceContext), "INFO: StopLoopIsoch already pending!\n");
+		return;
+	}
+
+	INIT_DELAYED_WORK(&DeviceContext->stop_isoch_work, MESSAGE_delayed_StopLoopIsoch);
+
+	/* Wait 100ms before stopping in case we need to start again.
+	 * This can happen during device initialization for usb audio devices */
+	schedule_delayed_work(&DeviceContext->stop_isoch_work, 10);
+}
+
+void
+MESSAGE_FreeLoopIsoch(
+	PDEVICE_CONTEXT DeviceContext
+)
+{
+	int indexOfMessage;
+	PURB_CONTEXT urbContext;
+
+	dev_info(dev_ctx_to_dev(DeviceContext), "MESSAGE_FreeLoopIsoch\n");
+	for (indexOfMessage = 0; indexOfMessage < NUMBER_OF_MESSAGE_ISOCH; indexOfMessage++) {
+		urbContext = DeviceContext->UrbContextMessageIsoch[indexOfMessage];
+		if (NULL != urbContext) {
 			URB_Destroy(urbContext);
 		}
 	}

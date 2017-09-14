@@ -2506,6 +2506,13 @@ static int xhci_configure_endpoint(struct xhci_hcd *xhci,
 		ret = xhci_evaluate_context_result(xhci, udev,
 						   &command->status);
 
+#ifdef EHUB_ISOCH_ENABLE
+	if (xhci->isoch_in_running && (atomic_read(&xhci->num_active_isoc_eps) == 0)) {
+		xhci_info(xhci, "Queuing Stop Isoch In EP\n");
+			MESSAGE_queue_StopLoopIsoch(xhci->DeviceContext);
+	}
+#endif // EHUB_ISOCH_ENABLE
+
 	if ((xhci->quirks & XHCI_EP_LIMIT_QUIRK)) {
 		ehub_xhci_spin_lock_irqsave( xhci, flags );
 		/* If the command failed, remove the reserved resources.

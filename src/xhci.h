@@ -1714,7 +1714,8 @@ struct xhci_hcd {
 #define XHCI_PME_STUCK_QUIRK    (1 << 20)
 	unsigned int        num_active_eps;
 	unsigned int        limit_active_eps;
-	unsigned int        num_active_isoc_eps;
+	atomic_t      		num_active_isoc_eps;
+	unsigned int        isoch_in_running;
 	/* There are two roothubs to keep track of bus suspend info for */
 	struct xhci_bus_state   bus_state[2];
 	/* Is each xHCI roothub port a USB 3.0, USB 2.0, or USB 1.1 port? */
@@ -2076,8 +2077,9 @@ int ehub_xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
 int ehub_xhci_queue_reset_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		u32 slot_id);
 struct xhci_ring *xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
-	unsigned int slot_id, unsigned int ep_index,
-											  unsigned int stream_id);
+		unsigned int slot_id,
+		unsigned int ep_index,
+		unsigned int stream_id);
 void ehub_xhci_find_new_dequeue_state(struct xhci_hcd *xhci,
 		unsigned int slot_id, unsigned int ep_index,
 		unsigned int stream_id, struct xhci_td *cur_td,

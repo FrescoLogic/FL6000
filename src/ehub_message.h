@@ -62,12 +62,32 @@ MESSAGE_StartLoopInterrupt(
 
 #ifdef EHUB_ISOCH_ENABLE
 int
+MESSAGE_InitLoopIsoch(
+	PDEVICE_CONTEXT DeviceContext
+);
+
+int
 MESSAGE_StartLoopIsoch(
 	PDEVICE_CONTEXT DeviceContext
 );
 
 void
 MESSAGE_StopLoopIsoch(
+	PDEVICE_CONTEXT DeviceContext
+);
+
+void
+MESSAGE_delayed_StopLoopIsoch(
+	struct work_struct* work
+);
+
+void
+MESSAGE_queue_StopLoopIsoch(
+	PDEVICE_CONTEXT DeviceContext
+);
+
+void
+MESSAGE_FreeLoopIsoch(
 	PDEVICE_CONTEXT DeviceContext
 );
 #endif /* EHUB_ISOCH_ENABLE */

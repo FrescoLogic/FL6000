@@ -1504,10 +1504,17 @@ int ehub_xhci_endpoint_init(struct xhci_hcd *xhci,
 		return -EINVAL;
 	ep_ctx->ep_info2 = cpu_to_le32(endpoint_type);
 
+#ifdef EHUB_ISOCH_ENABLE
 	if (usb_endpoint_xfer_isoc(&ep->desc)) {
-		xhci->num_active_isoc_eps++;
-		xhci_info(xhci, "Add isoch ep, num_active_isoc_eps=%d\n", xhci->num_active_isoc_eps);
+		int ep_count = atomic_inc_return(&xhci->num_active_isoc_eps);
+		if (ep_count == 1) {
+			ASSERT(xhci->isoch_in_running == 0);
+			xhci_info(xhci, "Starting Isoch In EP\n");
+			MESSAGE_StartLoopIsoch(xhci->DeviceContext);
+		}
+		xhci_info(xhci, "Add isoch ep, num_active_isoc_eps=%d\n", ep_count);
 	}
+#endif // EHUB_ISOCH_ENABLE
 
 	if (usb_endpoint_xfer_isoc(&ep->desc))
 		num_segs = 4;
@@ -1615,11 +1622,14 @@ void ehub_xhci_endpoint_zero(struct xhci_hcd *xhci,
 	ep_index = ehub_xhci_get_endpoint_index(&ep->desc);
 	ep_ctx = ehub_xhci_get_ep_ctx(xhci, virt_dev->in_ctx, ep_index);
 
+#ifdef EHUB_ISOCH_ENABLE
 	if (usb_endpoint_xfer_isoc(&ep->desc)) {
-		ASSERT(xhci->num_active_isoc_eps > 0);
-		xhci->num_active_isoc_eps--;
-		xhci_info(xhci, "Remove isoch ep, num_active_isoc_eps=%d\n", xhci->num_active_isoc_eps);
+		int ep_count;
+		ep_count = atomic_dec_return(&xhci->num_active_isoc_eps);
+		ASSERT(ep_count >= 0);
+		xhci_info(xhci, "Remove isoch ep, num_active_isoc_eps=%d\n", ep_count);
 	}
+#endif // EHUB_ISOCH_ENABLE
 
 	ep_ctx->ep_info = 0;
 	ep_ctx->ep_info2 = 0;
@@ -2427,6 +2437,10 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	int i;
 
 	INIT_LIST_HEAD(&xhci->cmd_list);
+
+#ifdef EHUB_ISOCH_ENABLE
+	atomic_set(&xhci->num_active_isoc_eps, 0);
+#endif // EHUB_ISOCH_ENABLE
 
 	page_size = xhci_readl( xhci, &xhci->op_regs->page_size);
 	if (page_size == ~( u32 )0)
