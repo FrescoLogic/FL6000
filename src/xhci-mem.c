@@ -149,7 +149,7 @@ static void xhci_link_segments(struct xhci_hcd *xhci, struct xhci_segment *prev,
 											prev->EhubCacheBlock->Address + TRB_SEGMENT_SIZE - sizeof(struct xhci_generic_trb),
 											( u32* )&prev->trbs[TRBS_PER_SEGMENT - 1],
 											sizeof(struct xhci_link_trb),
-											0,
+											-1,
 											false,
 											0,
 											0,
@@ -1442,6 +1442,8 @@ int ehub_xhci_endpoint_init(struct xhci_hcd *xhci,
 		return -EINVAL;
 	ep_ctx->ep_info2 = cpu_to_le32(endpoint_type);
 
+	virt_dev->eps[ep_index].max_buffer_size = TRB_MAX_BUFF_SIZE;
+
 #ifdef EHUB_ISOCH_ENABLE
 	if (usb_endpoint_xfer_isoc(&ep->desc)) {
 		int ep_count = atomic_inc_return(&xhci->num_active_isoc_eps);
@@ -1451,6 +1453,13 @@ int ehub_xhci_endpoint_init(struct xhci_hcd *xhci,
 			MESSAGE_StartLoopIsoch(xhci->DeviceContext);
 		}
 		xhci_info(xhci, "Add isoch ep, num_active_isoc_eps=%d\n", ep_count);
+
+	#ifdef EHUB_ISOCH_DATA_CACHE_ENABLE
+		if (usb_endpoint_is_isoc_out(&ep->desc)) {
+			virt_dev->eps[ep_index].cache_data = true;
+			virt_dev->eps[ep_index].max_buffer_size = EHUB_CACHE_BLOCK_SIZE;
+		}
+	#endif // EHUB_ISOCH_DATA_CACHE_ENABLE
 	}
 #endif // EHUB_ISOCH_ENABLE
 
@@ -1798,9 +1807,12 @@ struct xhci_command *ehub_xhci_alloc_command(struct xhci_hcd *xhci,
 	return command;
 }
 
-void ehub_xhci_urb_free_priv(struct urb_priv *urb_priv)
+void ehub_xhci_urb_free_priv(struct xhci_hcd *xhci, struct urb_priv *urb_priv)
 {
 	if (urb_priv) {
+#ifdef EHUB_ISOCH_DATA_CACHE_ENABLE
+		ehub_xhci_cache_block_free_by_urb(xhci, urb_priv);
+#endif // EHUB_ISOCH_DATA_CACHE_ENABLE
 		kfree(urb_priv->td[0]);
 		kfree(urb_priv);
 	}

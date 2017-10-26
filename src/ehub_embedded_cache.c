@@ -88,7 +88,7 @@ EMBEDDED_CACHE_Write(
 	if (NULL != DataBuffer) {
 		memcpy(tempBuffer, DataBuffer, DataBufferLength);
 	} else {
-		dev_err(dev_ctx_to_dev(DeviceContext), "memset dest=0x%p len=%d\n", tempBuffer, DataBufferLength);
+		dev_dbg(dev_ctx_to_dev(DeviceContext), "memset dest=0x%p len=%d\n", tempBuffer, DataBufferLength);
 		memset(tempBuffer, 0, DataBufferLength);
 
 		if (TrbCycleState == 0) {

@@ -30,6 +30,11 @@
  */
 #define EHUB_CACHE_QUEUE_ENTRIES    ( 32 )
 
+/*
+ * Maximum number of cache blocks to use for caching data
+ */
+#define EHUB_CACHE_MAX_DATA_BLOCKS  ( 6 )
+
 #define EHUB_CACHE_START_ADDRESS            ( 0x1000 )
 //#define EHUB_CACHE_INITIALIZATION_REGISTER  ( 0x22020FFF )
 #define EHUB_EVENTS_ON_ISOCH  ( 1 << 27 )

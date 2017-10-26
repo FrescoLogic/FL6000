@@ -1174,6 +1174,9 @@ int ehub_xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 
 	urb_priv->length = size;
 	urb_priv->td_cnt = 0;
+#ifdef EHUB_ISOCH_DATA_CACHE_ENABLE
+	urb_priv->cache_block_cnt = 0;
+#endif // EHUB_ISOCH_DATA_CACHE_ENABLE
 	urb->hcpriv = urb_priv;
 
 	if (usb_endpoint_xfer_control(&urb->ep->desc)) {
@@ -1184,7 +1187,7 @@ int ehub_xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 			ret = xhci_check_maxpacket(xhci, slot_id,
 					ep_index, urb);
 			if (ret < 0) {
-				ehub_xhci_urb_free_priv(urb_priv);
+				ehub_xhci_urb_free_priv(xhci, urb_priv);
 				urb->hcpriv = NULL;
 				return ret;
 			}
@@ -1250,7 +1253,7 @@ dying:
 			urb->ep->desc.bEndpointAddress, urb);
 	ret = -ESHUTDOWN;
 free_priv:
-	ehub_xhci_urb_free_priv(urb_priv);
+	ehub_xhci_urb_free_priv(xhci, urb_priv);
 	urb->hcpriv = NULL;
 	ehub_xhci_spin_unlock_irqrestore( xhci, flags );
 	return ret;
@@ -1363,7 +1366,7 @@ int ehub_xhci_urb_dequeue(struct usb_hcd *hcd, struct urb *urb, int status)
 		usb_hcd_unlink_urb_from_ep(hcd, urb);
 		ehub_xhci_spin_unlock_irqrestore( xhci, flags );
 		usb_hcd_giveback_urb(hcd, urb, -ESHUTDOWN);
-		ehub_xhci_urb_free_priv(urb_priv);
+		ehub_xhci_urb_free_priv(xhci, urb_priv);
 		return ret;
 	}
 	if ((xhci->xhc_state & XHCI_STATE_DYING) ||

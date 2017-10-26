@@ -901,6 +901,9 @@ struct xhci_virt_ep {
 	/* Bandwidth checking storage */
 	struct xhci_bw_info bw_info;
 	struct list_head    bw_endpoint_list;
+	/* Used to split TDs based on cache block size*/
+	unsigned int        max_buffer_size;
+	bool                cache_data;
 };
 
 enum xhci_overhead_type {
@@ -1467,6 +1470,8 @@ struct xhci_scratchpad {
 
 struct urb_priv {
 	int length;
+	int cache_block_cnt;
+	PEHUB_CACHE_BLOCK EhubDataCacheBlock[6];
 	int td_cnt;
 	struct  xhci_td *td[0];
 };
@@ -1635,9 +1640,6 @@ struct xhci_hcd {
 	struct dma_pool *page_pool;
 	struct dma_pool *small_streams_pool;
 	struct dma_pool *medium_streams_pool;
-
-	PEHUB_CACHE_BLOCK TempEhubCacheBlockArray[ EHUB_CACHE_NUMBER_OF_BLOCKS ];
-	int TempEhubCacheBlockCount;
 
 	// Cache pool.
 	//
@@ -1982,7 +1984,7 @@ struct xhci_ring *ehub_xhci_stream_id_to_ring(
 struct xhci_command *ehub_xhci_alloc_command(struct xhci_hcd *xhci,
 		bool allocate_in_ctx, bool allocate_completion,
 		gfp_t mem_flags);
-void ehub_xhci_urb_free_priv(struct urb_priv *urb_priv);
+void ehub_xhci_urb_free_priv(struct xhci_hcd *xhci, struct urb_priv *urb_priv);
 void ehub_xhci_free_command(struct xhci_hcd *xhci,
 		struct xhci_command *command);
 
@@ -2229,6 +2231,12 @@ ehub_xhci_cache_block_allocate_segment(
 	void *start_addr
 	);
 
+int
+ehub_xhci_cache_block_allocate_urb(
+	struct xhci_hcd *xhci,
+	struct urb *urb
+);
+
 void
 ehub_xhci_cache_block_free(
 	struct xhci_hcd *xhci,
@@ -2238,7 +2246,7 @@ ehub_xhci_cache_block_free(
 void
 ehub_xhci_cache_block_free_by_urb(
 	struct xhci_hcd *xhci,
-	struct urb* urb
+	struct urb_priv *urb_priv
 	);
 
 union xhci_trb*

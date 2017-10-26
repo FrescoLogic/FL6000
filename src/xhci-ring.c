@@ -722,7 +722,7 @@ static void xhci_giveback_urb_in_irq(struct xhci_hcd *xhci,
 		/* EHUB don't release lock because we use semaphore instead of spinlock. ??? */
 //		xhci_spin_unlock_irq(xhci);
 		usb_hcd_giveback_urb(hcd, urb, status);
-		ehub_xhci_urb_free_priv(urb_priv);
+		ehub_xhci_urb_free_priv(xhci, urb_priv);
 //		xhci_spin_lock_irq(xhci);
 	}
 }
@@ -2674,7 +2674,7 @@ cleanup:
 			urb = td->urb;
 			urb_priv = urb->hcpriv;
 
-			ehub_xhci_urb_free_priv(urb_priv);
+			ehub_xhci_urb_free_priv(xhci, urb_priv);
 
 			local_irq_save(flags);
 			usb_hcd_unlink_urb_from_ep(bus_to_hcd(urb->dev->bus), urb);
@@ -3044,7 +3044,7 @@ static int prepare_ring(struct xhci_hcd *xhci, struct xhci_ring *ep_ring,
 												ring->enq_seg->EhubCacheBlock->Address + TRB_SEGMENT_SIZE - sizeof(struct xhci_generic_trb),
 												( u32* )next,
 												sizeof(struct xhci_generic_trb),
-												0, // not used
+												-1, // not used
 												false,
 												0,
 												0,
@@ -3208,7 +3208,7 @@ static void giveback_first_trb(struct xhci_hcd *xhci, int slot_id,
 	} else
 #endif /* USE_TRB_CACHE_MODE */
 	{
-	ehub_xhci_ring_ep_doorbell(xhci, slot_id, ep_index, stream_id);
+		ehub_xhci_ring_ep_doorbell(xhci, slot_id, ep_index, stream_id);
 	}
 }
 
@@ -3729,7 +3729,7 @@ int ehub_xhci_queue_ctrl_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 }
 
 static int count_isoc_trbs_needed(struct xhci_hcd *xhci,
-		struct urb *urb, int i)
+		struct urb *urb, int i, unsigned int max_buffer_size)
 {
 	int num_trbs = 0;
 	u64 addr, td_len;
@@ -3737,8 +3737,8 @@ static int count_isoc_trbs_needed(struct xhci_hcd *xhci,
 	addr = (u64) (urb->transfer_dma + urb->iso_frame_desc[i].offset);
 	td_len = urb->iso_frame_desc[i].length;
 
-	num_trbs = DIV_ROUND_UP(td_len + (addr & (TRB_MAX_BUFF_SIZE - 1)),
-			TRB_MAX_BUFF_SIZE);
+	num_trbs = DIV_ROUND_UP(td_len + (addr & (max_buffer_size - 1)),
+							max_buffer_size);
 	if (num_trbs == 0)
 		num_trbs++;
 
@@ -3822,10 +3822,13 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 	dma_addr_t buffer_addr;
 	union xhci_trb* currentTrb;
 	struct xhci_segment* currentSegment;
+	unsigned int max_buffer_size;
 
 	buffer_addr = ( dma_addr_t )urb->transfer_buffer;
 
 	ep_ring = xhci->devs[slot_id]->eps[ep_index].ring;
+
+	max_buffer_size = xhci->devs[slot_id]->eps[ep_index].max_buffer_size;
 
 	num_tds = urb->number_of_packets;
 	if (num_tds < 1) {
@@ -3868,7 +3871,7 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		residue = xhci_get_last_burst_packet_count(xhci,
 				urb->dev, urb, total_packet_count);
 
-		trbs_per_td = count_isoc_trbs_needed(xhci, urb, i);
+		trbs_per_td = count_isoc_trbs_needed(xhci, urb, i, max_buffer_size);
 
 		ret = prepare_transfer(xhci, xhci->devs[slot_id], ep_index,
 				urb->stream_id, trbs_per_td, urb, i, mem_flags);
@@ -3928,8 +3931,8 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 			}
 
 			/* Calculate TRB length */
-			trb_buff_len = TRB_MAX_BUFF_SIZE -
-				(addr & ((1 << TRB_MAX_BUFF_SHIFT) - 1));
+			trb_buff_len = max_buffer_size -
+				(addr & (max_buffer_size - 1));
 			if (trb_buff_len > td_remain_len)
 				trb_buff_len = td_remain_len;
 
@@ -4028,7 +4031,7 @@ int ehub_xhci_queue_isoc_tx_prepare(struct xhci_hcd *xhci, gfp_t mem_flags,
 	num_trbs = 0;
 	num_tds = urb->number_of_packets;
 	for (i = 0; i < num_tds; i++)
-		num_trbs += count_isoc_trbs_needed(xhci, urb, i);
+		num_trbs += count_isoc_trbs_needed(xhci, urb, i, xdev->eps[ep_index].max_buffer_size);
 
 	/* Check the ring to guarantee there is enough room for the whole urb.
 	 * Do not insert any td of the urb to the ring if the check failed.
@@ -4037,6 +4040,16 @@ int ehub_xhci_queue_isoc_tx_prepare(struct xhci_hcd *xhci, gfp_t mem_flags,
 			   num_trbs, mem_flags);
 	if (ret)
 		return ret;
+
+#ifdef EHUB_ISOCH_DATA_CACHE_ENABLE
+	/* If data needs to be cached on chip, allocate cache blocks and transfer data
+	 */
+	if (xdev->eps[ep_index].cache_data) {
+		ret = ehub_xhci_cache_block_allocate_urb(xhci, urb);
+		if (ret)
+			return ret;
+	}
+#endif // EHUB_ISOCH_DATA_CACHE_ENABLE
 
 	start_frame = ehub_xhci_get_microframe(xhci);
 	start_frame &= 0x3fff;

@@ -491,6 +491,52 @@ static void ehub_delayed_cache_write(struct work_struct *work)
 	}
 }
 
+struct cache_write_context *
+ehub_get_cache_work_context(
+	PDEVICE_CONTEXT DeviceContext
+)
+{
+	struct xhci_hcd *xhci;
+	unsigned long flags;
+	struct cache_write_context *ehub_cache_work = NULL;
+	int new_entries = 1;
+	int status = 0;
+
+	xhci = dev_ctx_to_xhci(DeviceContext);
+
+	status = DEVICECONTEXT_ErrorCheck(DeviceContext);
+	if (status < 0)
+		return NULL;
+
+	spin_lock_irqsave(&xhci->cache_list_lock, flags);
+
+	if (list_empty(&xhci->cache_queue_free))
+		new_entries = ehub_xhci_cache_work_expand(xhci, 4, GFP_ATOMIC);
+
+	if (new_entries < 1) {
+		ASSERT(false);
+		spin_unlock_irqrestore(&xhci->cache_list_lock, flags);
+		return NULL;
+	}
+
+	ehub_cache_work = list_first_entry(&xhci->cache_queue_free,
+									   struct cache_write_context,
+									   list);
+
+	list_move_tail(&ehub_cache_work->list,
+				   &xhci->cache_queue_used);
+
+	ehub_cache_work->DeviceContext = DeviceContext;
+
+	dev_dbg(dev_ctx_to_dev(DeviceContext), "q_cw from %ps cw=0x%p\n",
+			__builtin_return_address(0),
+			ehub_cache_work);
+
+	spin_unlock_irqrestore(&xhci->cache_list_lock, flags);
+
+	return ehub_cache_work;
+}
+
 int
 ehub_queue_cache_write(
 	PDEVICE_CONTEXT DeviceContext,
@@ -505,9 +551,7 @@ ehub_queue_cache_write(
 )
 {
 	struct xhci_hcd *xhci;
-	unsigned long flags;
 	struct cache_write_context *ehub_cache_work;
-	int new_entries = 1;
 	int status = 0;
 
 	xhci = dev_ctx_to_xhci(DeviceContext);
@@ -516,20 +560,11 @@ ehub_queue_cache_write(
 	if (status < 0)
 		return status;
 
-	spin_lock_irqsave( &xhci->cache_list_lock, flags );
-
-	if (list_empty(&xhci->cache_queue_free))
-		new_entries = ehub_xhci_cache_work_expand(xhci, 4, GFP_ATOMIC);
-
-	if (new_entries < 1) {
-		ASSERT(false);
-		spin_unlock_irqrestore(&xhci->cache_list_lock, flags);
+	ehub_cache_work = ehub_get_cache_work_context(DeviceContext);
+	if (NULL == ehub_cache_work) {
+		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR: ehub_get_cache_work_context failed %d\n", status);
 		return -ENOBUFS;
 	}
-
-	ehub_cache_work = list_first_entry(&xhci->cache_queue_free,
-									   struct cache_write_context,
-									   list);
 
 	ehub_cache_work->DeviceContext = DeviceContext;
 	ehub_cache_work->CacheAddress = CacheAddress;
@@ -541,9 +576,6 @@ ehub_queue_cache_write(
 	ehub_cache_work->ep_index = ep_index;
 	ehub_cache_work->stream_id = stream_id;
 
-	list_move_tail(&ehub_cache_work->list,
-				   &xhci->cache_queue_used);
-
 	dev_dbg(dev_ctx_to_dev(DeviceContext), "q_cw from %ps cw=0x%p CA=0x%0X Buf=0x%p len=0x%0X DB=%d SL=%d EP=%d Stream=0x%0X\n",
 			 __builtin_return_address(0),
 			 ehub_cache_work,
@@ -554,8 +586,6 @@ ehub_queue_cache_write(
 			 ehub_cache_work->slot_id,
 			 ehub_cache_work->ep_index,
 			 ehub_cache_work->stream_id);
-
-	spin_unlock_irqrestore( &xhci->cache_list_lock, flags );
 
 #ifdef USE_DELAYED_CACHE_MODE
 	queue_work(xhci->ehub_cache_wq, &xhci->ehub_cache_work.work);
@@ -797,6 +827,9 @@ ehub_xhci_cache_block_allocate(
 	{
 		cacheBlock = NULL;
 		spin_unlock_irqrestore( &xhci->cache_list_lock, flags );
+		dev_warn(dev_ctx_to_dev(xhci->DeviceContext),
+				 "WARNING cache_list_free is empty. used=%d free=%d\n",
+				 xhci->number_of_caches_used, xhci->number_of_caches_free);
 		goto Exit;
 	}
 
@@ -874,12 +907,97 @@ ehub_xhci_cache_block_allocate_segment(
 		goto Exit;
 	}
 
-	dev_dbg(dev_ctx_to_dev(xhci->DeviceContext), "Alloc Block : %d used=%d free=%d\n",
+	dev_dbg(dev_ctx_to_dev(xhci->DeviceContext), "Alloc Seg : %d used=%d free=%d\n",
 			cacheBlock->IndexOfBlock, xhci->number_of_caches_used, xhci->number_of_caches_free );
 
 Exit:
 
 	return cacheBlock;
+}
+
+int
+ehub_xhci_cache_block_allocate_urb(
+	struct xhci_hcd *xhci,
+	struct urb *urb
+)
+{
+	unsigned long flags;
+	int status = 0;
+	int i;
+	u8 *start_addr = urb->transfer_buffer;
+	u32 length = urb->transfer_buffer_length;
+	struct urb_priv* urb_priv = urb->hcpriv;
+	int num_blocks_needed = DIV_ROUND_UP(urb->transfer_buffer_length, EHUB_CACHE_BLOCK_SIZE);
+	u32 cache_length;
+
+	xhci_dbg(xhci, "CACHE: need %d blocks urb=0x%p\n", num_blocks_needed, urb);
+	ASSERT(num_blocks_needed < EHUB_CACHE_MAX_DATA_BLOCKS);
+
+	/* First, allocate all the blocks needed to make sure there are enough available. */
+	spin_lock_irqsave(&xhci->cache_list_lock, flags);
+
+	if (xhci->number_of_caches_free < num_blocks_needed) {
+		status = -ENOMEM;
+		xhci_err(xhci,
+				 "ERROR not enough cache blocks. used=%d free=%d\n",
+				 xhci->number_of_caches_used, xhci->number_of_caches_free);
+		goto Exit;
+	}
+
+	for (i = 0; i < num_blocks_needed; i++) {
+		if (list_empty(&xhci->cache_list_free)) {
+			ASSERT(NULL == urb_priv->EhubDataCacheBlock[i]);
+			spin_unlock_irqrestore(&xhci->cache_list_lock, flags);
+			status = -ENOMEM;
+			dev_warn(dev_ctx_to_dev(xhci->DeviceContext),
+					 "WARNING cache_list_free is empty. used=%d free=%d\n",
+					 xhci->number_of_caches_used, xhci->number_of_caches_free);
+			ehub_xhci_cache_block_free_by_urb(xhci, urb->hcpriv);
+			goto Exit;
+		}
+
+		urb_priv->EhubDataCacheBlock[i] = list_first_entry(&xhci->cache_list_free,
+									  EHUB_CACHE_BLOCK,
+									  list);
+		list_move_tail(&urb_priv->EhubDataCacheBlock[i]->list,
+					   &xhci->cache_list_used);
+		xhci->number_of_caches_free--;
+		xhci->number_of_caches_used++;
+		urb_priv->cache_block_cnt++;
+		urb_priv->EhubDataCacheBlock[i]->urb = urb;
+		dev_dbg(dev_ctx_to_dev(xhci->DeviceContext), "Alloc Block URB : %d used=%d free=%d urb=0x%p urb_priv=0x%p\n",
+				urb_priv->EhubDataCacheBlock[i]->IndexOfBlock, xhci->number_of_caches_used, xhci->number_of_caches_free, urb, urb_priv);
+
+
+	}
+	spin_unlock_irqrestore(&xhci->cache_list_lock, flags);
+
+
+	for (i = 0; i < num_blocks_needed; i++) {
+		cache_length = min(length, (u32)EHUB_CACHE_BLOCK_SIZE);
+
+		/* Second, Write the data to device cache */
+		status = ehub_queue_cache_write(xhci->DeviceContext,
+										urb_priv->EhubDataCacheBlock[i]->Address,
+										(u32*)start_addr,
+										cache_length,
+										0,
+										false,
+										0,
+										0,
+										0);
+		if (status < 0) {
+			dev_err(dev_ctx_to_dev(xhci->DeviceContext), "ERROR EMBEDDED_CACHE_Write fail %d\n", status);
+			ehub_xhci_cache_block_free_by_urb(xhci, urb_priv);
+			goto Exit;
+		}
+		start_addr += cache_length;
+		length -= cache_length;
+	}
+
+Exit:
+
+	return status;
 }
 
 void
@@ -909,38 +1027,29 @@ ehub_xhci_cache_block_free(
 void
 ehub_xhci_cache_block_free_by_urb(
 	struct xhci_hcd *xhci,
-	struct urb* urb
+	struct urb_priv* urb_priv
 	)
 {
 	unsigned long flags;
-	struct list_head *item;
-	PEHUB_CACHE_BLOCK ehubCacheBlock;
 	int index;
 
-	spin_lock_irqsave( &xhci->cache_list_lock, flags );
+	if (urb_priv) {
+		spin_lock_irqsave(&xhci->cache_list_lock, flags);
 
-	xhci->TempEhubCacheBlockCount = 0;
 
-	list_for_each( item, &xhci->cache_list_used )
-	{
-		ehubCacheBlock = list_entry( item,
-									 EHUB_CACHE_BLOCK,
-									 list );
-
-		if ( ehubCacheBlock->urb == urb )
-		{
-			xhci->TempEhubCacheBlockArray[ xhci->TempEhubCacheBlockCount ] = ehubCacheBlock;
-			xhci->TempEhubCacheBlockCount++;
+		for (index = 0; index < urb_priv->cache_block_cnt; index++) {
+			dev_dbg(dev_ctx_to_dev(xhci->DeviceContext), "CACHE: Free URB : %d used=%d free=%d urb_priv=0x%p\n",
+					 urb_priv->EhubDataCacheBlock[index]->IndexOfBlock, xhci->number_of_caches_used, xhci->number_of_caches_free, urb_priv );
+			list_move_tail(&urb_priv->EhubDataCacheBlock[index]->list,
+						   &xhci->cache_list_free);
+			xhci->number_of_caches_used--;
+			xhci->number_of_caches_free++;
+			urb_priv->EhubDataCacheBlock[index] = NULL;
 		}
-	}
+		urb_priv->cache_block_cnt = 0;
 
-	for ( index = 0; index < xhci->TempEhubCacheBlockCount; index++ )
-	{
-		xhci_dbg(xhci, "Free Block : %d \n", xhci->TempEhubCacheBlockArray[ index ]->IndexOfBlock );
-		ehub_xhci_cache_block_free( xhci, xhci->TempEhubCacheBlockArray[ index ] );
+		spin_unlock_irqrestore(&xhci->cache_list_lock, flags);
 	}
-
-	spin_unlock_irqrestore( &xhci->cache_list_lock, flags );
 }
 
 union xhci_trb*
@@ -1065,7 +1174,7 @@ ehub_xhci_cache_copy_from_ring(
 											cacheAddress,
 											( u32* )start_trb,
 											copyLength,
-											0,
+											-1,
 											lastCopy && ring_doorbell,
 											slot_id,
 											ep_index,
@@ -1123,35 +1232,31 @@ ehub_xhci_get_data_buffer_addr( struct xhci_hcd *xhci, struct urb *urb,
 	u64 addr, int trb_buff_len )
 {
 	u64 addrData;
-#ifdef USE_DATA_CACHE_MODE
-	if (!usb_urb_dir_in(urb)) {
+#ifdef EHUB_ISOCH_DATA_CACHE_ENABLE
+	struct urb_priv* urb_priv = urb->hcpriv;
+	if (urb_priv->cache_block_cnt) {
 		PEHUB_CACHE_BLOCK ehubCacheBlock;
+		unsigned int block_num;
 
-		ehubCacheBlock = ehub_xhci_cache_block_allocate(xhci);
+		block_num = (addr - ( u64 )urb->transfer_buffer) / EHUB_CACHE_BLOCK_SIZE;
+		ASSERT(block_num < EHUB_CACHE_MAX_DATA_BLOCKS);
+
+		ehubCacheBlock = urb_priv->EhubDataCacheBlock[block_num];
+
 		if (NULL != ehubCacheBlock) {
-			int status;
 
-			ehubCacheBlock->urb = urb;
+			ASSERT(ehubCacheBlock->urb == urb);
 
-			status = EMBEDDED_CACHE_Write(xhci->DeviceContext,
-											ehubCacheBlock->Address,
-											( u32* )addr,
-											trb_buff_len,
-											0);
-			if (status < 0) {
-				xhci_err(xhci, "EMBEDDED_CACHE_Write fail %d\n", status);
-				return 0;
-			}
-
-			addrData = 0;
-			addrData = ehubCacheBlock->Address;
+			addrData = ehubCacheBlock->Address + (addr & (EHUB_CACHE_BLOCK_SIZE - 1));
+			xhci_dbg(xhci, "CACHE: blk_num=%u addr=0x%llx, urb_buf=0x%p addrData=0x%llx\n",
+					  block_num, addr, urb->transfer_buffer, addrData);
 		} else {
-			// panic( "\n\n#### ehub out of cache. ###\n\n" );
+			panic( "\n\n#### ehub out of cache. ###\n\n" );
 			//
 			addrData = 0;
 		}
 	} else {
-		// In transfer.
+		// Non-cached data
 		//
 		addrData = addr;
 	}
