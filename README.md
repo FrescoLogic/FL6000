@@ -15,7 +15,7 @@ This release is targeted to open-source developers, as opposed to end-users.
 
 ### 4. Limitations?
 
-Support for isochronous devices is currently disabled.  Limited testing has been done with USB webcams with some success.  Isoch out support needs some work on data caching before it will function properly.
+Isochronous devices are now supported but only limited testing has been done.  Webcams are working as are USB audio in and out.
 
 ### 5. How do I compile & test the kernel driver?
 
