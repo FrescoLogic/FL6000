@@ -75,42 +75,12 @@ int ehub_xhci_map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_fl
 {
 	int ret = 0;
 
-	/* Map the URB's buffers for DMA access.
-	 * Lower level HCD code should use *_dma exclusively,
-	 * unless it uses pio or talks to another transport,
-	 * or uses the provided scatter gather list for bulk.
+	/*
+	 * handle the case for (urb->num_sgs != 0)
 	 */
-	if (usb_endpoint_xfer_control(&urb->ep->desc))
-	{
-		if (hcd->self.uses_pio_for_control)
-			return ret;
-
-		if (hcd->self.uses_dma)
-		{
-			urb->setup_dma = dma_map_single( hcd->self.controller,
-											 urb->setup_packet,
-											 sizeof(struct usb_ctrlrequest),
-											 DMA_TO_DEVICE);
-			if ( dma_mapping_error( hcd->self.controller,
-									urb->setup_dma ) )
-				return -EAGAIN;
-
-			urb->transfer_flags |= URB_SETUP_MAP_SINGLE;
-		}
-		else if (hcd->driver->flags & HCD_LOCAL_MEM)
-		{
-			if (ret)
-				return ret;
-
-			urb->transfer_flags |= URB_SETUP_MAP_LOCAL;
-		}
-	}
-
-	if ( urb->transfer_buffer_length != 0
-		 && !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP))
-	{
-		if ( urb->num_sgs )
-		{
+	if (urb->transfer_buffer_length != 0 &&
+	    !(urb->transfer_flags & URB_NO_TRANSFER_DMA_MAP)) {
+		if (urb->num_sgs) {
 			int n = 0;
 			int i;
 			struct scatterlist *s;
@@ -128,21 +98,8 @@ int ehub_xhci_map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_fl
 				urb->transfer_flags |= URB_DMA_MAP_SG;
 
 			urb->num_mapped_sgs = n;
-			if ( n != urb->num_sgs )
-			{
+			if (n != urb->num_sgs)
 				urb->transfer_flags |= URB_DMA_SG_COMBINED;
-			}
-		}
-		else if (hcd->driver->flags & HCD_LOCAL_MEM)
-		{
-			if (ret == 0)
-				urb->transfer_flags |= URB_MAP_LOCAL;
-		}
-
-		if ( ret &&
-			 ( urb->transfer_flags & ( URB_SETUP_MAP_SINGLE | URB_SETUP_MAP_LOCAL ) ) )
-		{
-			usb_hcd_unmap_urb_for_dma(hcd, urb);
 		}
 	}
 
@@ -151,8 +108,6 @@ int ehub_xhci_map_urb_for_dma(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_fl
 
 void ehub_xhci_unmap_urb_for_dma(struct usb_hcd *hcd, struct urb *urb)
 {
-	usb_hcd_unmap_urb_setup_for_dma(hcd, urb);
-
 	/* Make it safe to call this routine more than once */
 	urb->transfer_flags &= ~(URB_DMA_MAP_SG | URB_DMA_MAP_PAGE |
 			URB_DMA_MAP_SINGLE | URB_MAP_LOCAL);
@@ -474,7 +429,7 @@ static void ring_doorbell_for_active_rings(struct xhci_hcd *xhci,
 	}
 }
 
-struct xhci_ring *xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
+struct xhci_ring *ehub_xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
 		unsigned int slot_id, unsigned int ep_index,
 		unsigned int stream_id)
 {
@@ -515,7 +470,7 @@ struct xhci_ring *xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
 static struct xhci_ring *xhci_urb_to_transfer_ring(struct xhci_hcd *xhci,
 		struct urb *urb)
 {
-	return xhci_triad_to_transfer_ring(xhci, urb->dev->slot_id,
+	return ehub_xhci_triad_to_transfer_ring(xhci, urb->dev->slot_id,
 		ehub_xhci_get_endpoint_index(&urb->ep->desc), urb->stream_id);
 }
 
@@ -552,7 +507,7 @@ void ehub_xhci_find_new_dequeue_state(struct xhci_hcd *xhci,
 	bool cycle_found = false;
 	bool td_last_trb_found = false;
 
-	ep_ring = xhci_triad_to_transfer_ring(xhci, slot_id,
+	ep_ring = ehub_xhci_triad_to_transfer_ring(xhci, slot_id,
 			ep_index, stream_id);
 	if (!ep_ring) {
 		xhci_warn(xhci, "WARN can't find new dequeue state "
@@ -3198,7 +3153,7 @@ static void giveback_first_trb(struct xhci_hcd *xhci, int slot_id,
 		start_trb->field[3] &= cpu_to_le32(~TRB_CYCLE);
 
 #ifdef USE_TRB_CACHE_MODE
-	if (ehub_cache_ring(xhci_triad_to_transfer_ring(xhci, slot_id,
+	if (ehub_cache_ring(ehub_xhci_triad_to_transfer_ring(xhci, slot_id,
 													ep_index, stream_id)->type)) {
 		ehub_xhci_cache_copy_from_ring(xhci, slot_id, ep_index, stream_id, true);
 		if (IS_EMBEDDED_CACHE_WRITE_ERROR(xhci->DeviceContext)) {

@@ -336,10 +336,8 @@ int ehub_xhci_add(
 	driver = &ehub_xhci_xhci_driver;
 
 	dev_dbg(dev_ctx_to_dev(DeviceContext), "usb_create_hcd...\n" );
-	hcd = usb_create_hcd( driver,
-						  dev,
-						  dev_name( dev ) );
-	if ( !hcd )
+	hcd = usb_create_hcd(driver, dev, dev_name(dev));
+	if (!hcd)
 	{
 		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_create_hcd failed!" );
 		ret = -ENOMEM;
@@ -376,11 +374,11 @@ int ehub_xhci_add(
 	}
 #endif
 
+	// trick to fool hcd_buffer_alloc on kernel 4.xx. so that it would not call dma_pool_alloc().
+	hcd->self.controller->dma_mask = NULL;
 	dev_dbg(dev_ctx_to_dev(DeviceContext), "usb_add_hcd...\n" );
-	ret = usb_add_hcd( hcd,
-					   0,
-					   0 );
-	if ( ret )
+	ret = usb_add_hcd(hcd, 0, 0);
+	if (ret)
 	{
 		dev_err(dev_ctx_to_dev(DeviceContext), "ERROR usb_add_hcd failed! %d", ret);
 		ehub_xhci_cache_destroy(xhci);
@@ -1117,8 +1115,8 @@ ehub_xhci_cache_copy_from_ring(
 	int status;
 	struct xhci_ring *ep_ring;
 
-	ep_ring = xhci_triad_to_transfer_ring(xhci, slot_id,
-										  ep_index, stream_id);
+	ep_ring = ehub_xhci_triad_to_transfer_ring(xhci, slot_id,
+			ep_index, stream_id);
 
 	/* Capture locations in case it changes */
 	/* Is this really needed? */

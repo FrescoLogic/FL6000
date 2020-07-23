@@ -41,7 +41,6 @@ static struct xhci_segment *xhci_segment_alloc(struct xhci_hcd *xhci,
 					unsigned int cycle_state, gfp_t flags)
 {
 	struct xhci_segment *seg;
-	dma_addr_t  dma;
 	int     i;
 
 	seg = kzalloc(sizeof *seg, flags);
@@ -50,14 +49,13 @@ static struct xhci_segment *xhci_segment_alloc(struct xhci_hcd *xhci,
 		return NULL;
 	}
 
-	seg->trbs = dma_pool_alloc(xhci->segment_pool, flags, &dma);
+	seg->trbs = alloc_pages_exact(TRB_SEGMENT_SIZE, flags |  __GFP_ZERO);
 	if (!seg->trbs) {
 		xhci_err(xhci, "ERROR: xhci_segment_alloc seg->trbs=NULL\n");
 		kfree(seg);
 		return NULL;
 	}
 
-	memset(seg->trbs, 0, TRB_SEGMENT_SIZE);
 	/* If the cycle state is 0, set the cycle bit to 1 for all the TRBs */
 	if (cycle_state == 0) {
 		for (i = 0; i < TRBS_PER_SEGMENT; i++)
@@ -65,7 +63,6 @@ static struct xhci_segment *xhci_segment_alloc(struct xhci_hcd *xhci,
 	}
 	seg->dma = (dma_addr_t)seg->trbs;
 	ASSERT(IS_ALIGNED((unsigned long)seg->trbs, 64));
-	seg->orig_dma = dma;
 	seg->next = NULL;
 
 	return seg;
@@ -74,7 +71,7 @@ static struct xhci_segment *xhci_segment_alloc(struct xhci_hcd *xhci,
 static void xhci_segment_free(struct xhci_hcd *xhci, struct xhci_segment *seg)
 {
 	if (seg->trbs) {
-		dma_pool_free(xhci->segment_pool, seg->trbs, seg->orig_dma);
+		free_pages_exact(seg->trbs, TRB_SEGMENT_SIZE);
 		seg->trbs = NULL;
 	}
 	kfree(seg);
@@ -555,13 +552,12 @@ static struct xhci_container_ctx *xhci_alloc_container_ctx(struct xhci_hcd *xhci
 	if (type == XHCI_CTX_TYPE_INPUT)
 		ctx->size += CTX_SIZE(xhci->hcc_params);
 
-	ctx->bytes = dma_pool_alloc(xhci->device_pool, flags, &ctx->orig_dma);
+	ctx->bytes = alloc_pages_exact(ctx->size, flags | __GFP_ZERO);
 	if (!ctx->bytes) {
 		kfree(ctx);
 		return NULL;
 	}
 	ctx->dma = (dma_addr_t)ctx->bytes;
-	memset(ctx->bytes, 0, ctx->size);
 	return ctx;
 }
 
@@ -570,8 +566,8 @@ static void xhci_free_container_ctx(struct xhci_hcd *xhci,
 {
 	if (!ctx)
 		return;
-	dma_pool_free(xhci->device_pool, ctx->bytes, ctx->orig_dma);
-		kfree( ctx );
+	free_pages_exact(ctx->bytes, ctx->size);
+	kfree( ctx );
 }
 
 struct xhci_input_control_ctx *ehub_xhci_get_input_control_ctx(
@@ -1839,8 +1835,8 @@ void ehub_xhci_mem_cleanup(struct xhci_hcd *xhci)
 	/* Free the Event Ring Segment Table and the actual Event Ring */
 	size = sizeof(struct xhci_erst_entry)*(xhci->erst.num_entries);
 	if (xhci->erst.entries)
-		dma_free_coherent(dev, size,
-						  xhci->erst.entries, xhci->erst.erst_dma_addr_orig);
+		free_pages_exact(xhci->erst.entries, size);
+
 	xhci->erst.entries = NULL;
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init, "Freed ERST");
 	if (xhci->event_ring)
@@ -1870,16 +1866,6 @@ void ehub_xhci_mem_cleanup(struct xhci_hcd *xhci)
 	for (i = 1; i < MAX_HC_SLOTS; ++i)
 		ehub_xhci_free_virt_device(xhci, i);
 
-	if (xhci->segment_pool)
-		dma_pool_destroy(xhci->segment_pool);
-	xhci->segment_pool = NULL;
-	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init, "Freed segment pool");
-
-	if (xhci->device_pool)
-		dma_pool_destroy(xhci->device_pool);
-	xhci->device_pool = NULL;
-	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init, "Freed device context pool");
-
 	if (xhci->small_streams_pool)
 		dma_pool_destroy(xhci->small_streams_pool);
 	xhci->small_streams_pool = NULL;
@@ -1893,7 +1879,7 @@ void ehub_xhci_mem_cleanup(struct xhci_hcd *xhci)
 			"Freed medium stream array pool");
 
 	if (xhci->dcbaa)
-		dma_pool_free(xhci->page_pool, &xhci->dcbaa, xhci->dcbaa->orig_dma);
+		free_pages_exact(xhci->dcbaa, sizeof(*xhci->dcbaa));
 	xhci->dcbaa = NULL;
 
 	scratchpad_free(xhci);
@@ -2425,24 +2411,25 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	/* Use for DCBAA and Scratchpads */
 	xhci->page_pool = dma_pool_create("xHCI pages", dev,
 										 4096, 4096, xhci->page_size);
-	if (!xhci->page_pool)
+	if (!xhci->page_pool) {
+		xhci_warn(xhci, "no page_pool allocated?\n");
 		goto fail;
+	}
 
 	/*
 	 * Section 5.4.8 - doorbell array must be
 	 * "physically contiguous and 64-byte (cache line) aligned".
 	 */
-	xhci->dcbaa = dma_pool_alloc(xhci->page_pool, flags, &dma);
-	if (!xhci->dcbaa)
+	xhci->dcbaa = alloc_pages_exact(sizeof(*xhci->dcbaa), flags);
+	if (!xhci->dcbaa) {
+		xhci_warn(xhci, "no dcbaa allocated?\n");
 		goto fail;
-	memset(xhci->dcbaa, 0, sizeof *(xhci->dcbaa));
-	xhci->dcbaa->orig_dma = dma;
-	dma = ( dma_addr_t )xhci->dcbaa;
+	}
+	dma = (dma_addr_t) xhci->dcbaa;
 	xhci->dcbaa->dma = dma;
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init,
-			"// Device context base array address = 0x%llx (DMA) 0x%11x (orig), %p (virt)\n",
+			"// Device context base array address = 0x%llx (DMA), %p (virt)\n",
 			(unsigned long long)xhci->dcbaa->dma,
-			(unsigned long long)xhci->dcbaa->orig_dma,
 			 xhci->dcbaa);
 	xhci_write_64(xhci, dma, &xhci->op_regs->dcbaa_ptr);
 
@@ -2461,19 +2448,13 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	/* Any stream context array bigger than MEDIUM_STREAM_ARRAY_SIZE
 	 * will be allocated with dma_alloc_coherent()
 	 */
-	xhci->segment_pool = dma_pool_create("xHCI ring segments", dev,
-			TRB_SEGMENT_SIZE, 64, xhci->page_size);
-
-	/* See Table 46 and Note on Figure 55 */
-	xhci->device_pool = dma_pool_create("xHCI input/output contexts", dev,
-			2112, 64, xhci->page_size);
-	if (!xhci->segment_pool || !xhci->device_pool)
-		goto fail;
 
 	/* Set up the command ring to have one segments for now. */
 	xhci->cmd_ring = xhci_ring_alloc(xhci, 1, 1, TYPE_COMMAND, flags);
-	if (!xhci->cmd_ring)
+	if (!xhci->cmd_ring) {
+		xhci_warn(xhci, "no cmd_ring?\n");
 		goto fail;
+	}
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init,
 			"Allocated command ring at %p", xhci->cmd_ring);
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init, "First segment DMA is 0x%llx",
@@ -2490,8 +2471,10 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	ehub_xhci_dbg_cmd_ptrs(xhci);
 
 	xhci->lpm_command = ehub_xhci_alloc_command(xhci, true, true, flags);
-	if (!xhci->lpm_command)
+	if (!xhci->lpm_command) {
+		xhci_warn(xhci, "no lpm_command?\n");
 		goto fail;
+	}
 
 	/* Reserve one command ring TRB for disabling LPM.
 	 * Since the USB core grabs the shared usb_bus bandwidth mutex before
@@ -2500,8 +2483,10 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	xhci->cmd_ring_reserved_trbs++;
 
 	val = xhci_readl( xhci, &xhci->cap_regs->db_off);
-	if (val == ~( u32 )0)
+	if (val == ~( u32 )0) {
+		xhci_warn(xhci, "bad db_off?\n");
 		goto fail;
+	}
 	val &= DBOFF_MASK;
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init,
 			"// Doorbell array is located at offset 0x%x"
@@ -2519,24 +2504,30 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init, "// Allocating event ring");
 	xhci->event_ring = xhci_ring_alloc(xhci, ERST_NUM_SEGS, 1, TYPE_EVENT,
 						flags);
-	if (!xhci->event_ring)
+	if (!xhci->event_ring) {
+		xhci_warn(xhci, "no event_ring?\n");
 		goto fail;
-	if (xhci_check_trb_in_td_math(xhci) < 0)
+	}
+	if (xhci_check_trb_in_td_math(xhci) < 0) {
+		xhci_warn(xhci, "xhci_check_trb_in_td_math() failed?\n");
 		goto fail;
+	}
 
-	xhci->erst.entries = dma_alloc_coherent(dev,
-											sizeof(struct xhci_erst_entry) * ERST_NUM_SEGS, &dma,
-											GFP_KERNEL);
+	xhci->erst.entries = alloc_pages_exact(
+		sizeof(struct xhci_erst_entry) * ERST_NUM_SEGS, GFP_KERNEL | __GFP_ZERO);
+		//dma_alloc_coherent(dev,
+		//sizeof(struct xhci_erst_entry) * ERST_NUM_SEGS, &dma, GFP_KERNEL);
 
-	if (!xhci->erst.entries)
+	if (!xhci->erst.entries) {
+		xhci_warn(xhci, "no erst.entries?\n");
 		goto fail;
+	}
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init,
 			"// Allocated event ring segment table at 0x%llx",
-			(unsigned long long)dma);
+			(unsigned long long) xhci->erst.entries);
 
-	memset(xhci->erst.entries, 0, sizeof(struct xhci_erst_entry)*ERST_NUM_SEGS);
+	//memset(xhci->erst.entries, 0, sizeof(struct xhci_erst_entry)*ERST_NUM_SEGS);
 	xhci->erst.num_entries = ERST_NUM_SEGS;
-	xhci->erst.erst_dma_addr_orig = dma;
 	xhci->erst.erst_dma_addr = (dma_addr_t)xhci->erst.entries;
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init,
 			"Set ERST to 0; private num segs = %i, virt addr = %p, dma addr = 0x%llx",
@@ -2555,8 +2546,10 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 
 	/* set ERST count with the number of entries in the segment table */
 	val = xhci_readl( xhci, &xhci->ir_set->erst_size);
-	if (val == ~( u32 )0)
+	if (val == ~( u32 )0) {
+		xhci_warn(xhci, "bad erst_size?\n");
 		goto fail;
+	}
 	val &= ERST_SIZE_MASK;
 	val |= ERST_NUM_SEGS;
 	ehub_xhci_dbg_trace(xhci, trace_ehub_xhci_dbg_init,
@@ -2600,18 +2593,24 @@ int ehub_xhci_mem_init(struct xhci_hcd *xhci, gfp_t flags)
 		init_completion(&xhci->bus_state[1].rexit_done[i]);
 	}
 
-	if (scratchpad_alloc(xhci, flags))
+	if (scratchpad_alloc(xhci, flags)) {
+		xhci_warn(xhci, "scatchpad_alloc() failed?\n");
 		goto fail;
-	if (xhci_setup_port_arrays(xhci, flags))
+	}
+	if (xhci_setup_port_arrays(xhci, flags)) {
+		xhci_warn(xhci, "xhci_setup_port_arrays() failed?\n");
 		goto fail;
+	}
 
 	/* Enable USB 3.0 device notifications for function remote wake, which
 	 * is necessary for allowing USB 3.0 devices to do remote wakeup from
 	 * U3 (device suspend).
 	 */
 	temp = xhci_readl( xhci, &xhci->op_regs->dev_notification);
-	if (temp == ~( u32 )0)
+	if (temp == ~( u32 )0) {
+		xhci_warn(xhci, "bad dev_notification?\n");
 		goto fail;
+	}
 	temp &= ~DEV_NOTE_MASK;
 	temp |= DEV_NOTE_FWAKE;
 	xhci_writel( xhci, temp, &xhci->op_regs->dev_notification);

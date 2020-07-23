@@ -2074,7 +2074,7 @@ int ehub_xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		int slot_id, unsigned int ep_index);
 int ehub_xhci_queue_reset_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
 		u32 slot_id);
-struct xhci_ring *xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
+struct xhci_ring *ehub_xhci_triad_to_transfer_ring(struct xhci_hcd *xhci,
 		unsigned int slot_id,
 		unsigned int ep_index,
 		unsigned int stream_id);
